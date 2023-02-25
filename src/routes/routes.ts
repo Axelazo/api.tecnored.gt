@@ -1,16 +1,23 @@
 import express, { Router, Request, Response } from "express";
 import AuthController from "../controllers/AuthController";
+import auth from "../middleware/auth";
+
+//* Main router
 const router: Router = express.Router();
 
-//Controllers
+//* Middlewares
 
-//Home
+//* Controllers
+
+//* Home
 router.get("/", (request: Request, response: Response) => {
   console.log(`[server]: ⚡️ Te amo mi amor, mi chiquitita preciosa ❤️❤️❤️`);
-  return response.json({ hola: "mundo" });
+  return response.json({
+    data: "⚡️ Te amo mi amor, mi chiquitita preciosa ❤️❤️❤️",
+  });
 });
 
-//Auth
+//* Auth
 router.post("/signin", AuthController.signIn);
 router.post("/signup", AuthController.signUp);
 
