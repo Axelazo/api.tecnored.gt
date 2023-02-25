@@ -1,4 +1,4 @@
-import { Request, Response, Errback } from "express";
+import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import auth from "../config/auth";
 import bcrypt from "bcrypt";
@@ -15,7 +15,7 @@ function signIn(request: Request, response: Response) {
   })
     .then((user) => {
       if (!user) {
-        response.status(400).json({ message: "User not found" });
+        response.status(400).json({ statusMessage: "User not found" });
       } else {
         if (bcrypt.compareSync(password, user.password)) {
           const token = jwt.sign({ user: user }, auth.secret, {
@@ -31,7 +31,9 @@ function signIn(request: Request, response: Response) {
             token: token,
           });
         } else {
-          response.status(401).json();
+          response
+            .status(401)
+            .json({ statusMessage: "Wrong email or password" });
         }
       }
     })
@@ -42,11 +44,13 @@ function signIn(request: Request, response: Response) {
 
 //Registration for new user
 function signUp(request: Request, response: Response) {
+  const { firstName, lastName, email, password } = request.body;
+
   User.create({
-    firstName: request.body.firstName,
-    lastName: request.body.lastName,
-    email: request.body.email,
-    password: request.body.password,
+    firstName,
+    lastName,
+    email,
+    password,
   })
     .then((user) => {
       const token = jwt.sign({ user: user }, auth.secret, {
