@@ -1,0 +1,2 @@
+# api.tecnored.gt
+ 
