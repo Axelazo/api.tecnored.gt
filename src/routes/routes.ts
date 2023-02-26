@@ -8,6 +8,9 @@ const router: Router = express.Router();
 //* Middlewares
 
 //* Controllers
+router.get("/users", auth, (request: Request, response: Response) => {
+  response.json({ hola: "mundo" });
+});
 
 //* Home
 router.get("/", (request: Request, response: Response) => {
