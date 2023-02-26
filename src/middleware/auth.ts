@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import authConfig from "../config/auth";
 import jwt from "jsonwebtoken";
-import { json } from "sequelize";
 
 function auth(request: Request, response: Response, next: NextFunction) {
   if (!request.headers.authorization) {
@@ -12,6 +11,7 @@ function auth(request: Request, response: Response, next: NextFunction) {
       if (error) {
         response.status(500).json();
       } else {
+        //request.user = decoded;
         next();
       }
     });
