@@ -1,4 +1,5 @@
 import { Model, Optional, DataTypes } from "sequelize";
+import Role from "./Role";
 import bcrypt from "bcrypt";
 import { sequelize } from "./index";
 import auth from "../config/auth";
