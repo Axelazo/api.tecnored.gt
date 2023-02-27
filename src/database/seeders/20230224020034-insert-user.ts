@@ -9,8 +9,8 @@ module.exports = {
           "users",
           [
             {
-              firstName: "Admin",
-              lastName: "Admin",
+              firstName: "Axel",
+              lastName: "Aguilar",
               email: "admin@tecnored.gt",
               password: salted,
               createdAt: new Date(),
@@ -23,6 +23,6 @@ module.exports = {
     ]);
   },
 
-  down: (queryInterface: QueryInterface): Promise<void> =>
-    queryInterface.dropTable("users"),
+  down: (queryInterface: QueryInterface): Promise<number | object> =>
+    queryInterface.bulkDelete("users", {}, {}),
 };

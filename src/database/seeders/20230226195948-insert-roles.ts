@@ -1,45 +1,62 @@
-import bcrypt from "bcrypt";
 import { QueryInterface } from "sequelize";
 
 module.exports = {
   up: (queryInterface: QueryInterface): Promise<number | object> => {
     return Promise.all([
-      bcrypt.hash("password", 10).then((salted) => {
-        queryInterface.bulkInsert(
-          "roles",
-          [
-            {
-              roleName: "Admin",
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-            {
-              roleName: "Operator",
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-            {
-              roleName: "Technician",
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-            {
-              roleName: "Employee",
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-            {
-              roleName: "User",
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-          ],
-          {}
-        );
-      }),
+      queryInterface.bulkInsert("roles", [
+        {
+          roleName: "admin",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          roleName: "operator",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          roleName: "technician",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          roleName: "worker",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          roleName: "user",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]),
+      queryInterface.bulkInsert("user_role", [
+        {
+          userId: 1,
+          roleId: 1,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          userId: 1,
+          roleId: 3,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          userId: 1,
+          roleId: 5,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]),
     ]);
   },
 
-  down: (queryInterface: QueryInterface): Promise<void> =>
-    queryInterface.dropTable("roles"),
+  down: (queryInterface: QueryInterface): Promise<number | object> => {
+    return Promise.all([
+      queryInterface.bulkDelete("user_role", {}, {}),
+      queryInterface.bulkDelete("roles", {}, {}),
+    ]);
+  },
 };
