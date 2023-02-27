@@ -1,4 +1,4 @@
-import { Model, Optional, DataTypes } from "sequelize";
+import { Model, Optional, DataTypes, BuildOptions } from "sequelize";
 import Role from "./Role";
 import bcrypt from "bcrypt";
 import { sequelize } from "./index";
@@ -25,7 +25,11 @@ interface UserInstance
   updatedAt?: Date;
 }
 
-const User = sequelize.define<UserInstance>(
+type UserStatic = typeof Model & { associate: (models: any) => void } & {
+  new (values?: Record<string, unknown>, options?: BuildOptions): UserInstance;
+};
+
+const User = <UserStatic>sequelize.define<UserInstance>(
   "User",
   {
     id: {
@@ -104,5 +108,17 @@ const User = sequelize.define<UserInstance>(
     tableName: "users",
   }
 );
+
+User.belongsToMany(Role, {
+  through: "user_role",
+  as: "roles",
+  foreignKey: "userId",
+});
+
+Role.belongsToMany(User, {
+  through: "user_role",
+  as: "users",
+  foreignKey: "roleId",
+});
 
 export default User;
