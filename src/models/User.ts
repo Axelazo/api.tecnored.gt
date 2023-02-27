@@ -110,13 +110,13 @@ const User = <UserStatic>sequelize.define<UserInstance>(
 );
 
 User.belongsToMany(Role, {
-  through: "user_role",
+  through: "usersRoles",
   as: "roles",
   foreignKey: "userId",
 });
 
 Role.belongsToMany(User, {
-  through: "user_role",
+  through: "usersRoles",
   as: "users",
   foreignKey: "roleId",
 });

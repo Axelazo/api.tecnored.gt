@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import User from "../models/User";
-import Role from "../models/Role";
 import { Error } from "sequelize";
 import { AuthRequest } from "../ts/interfaces/app-interfaces";
 

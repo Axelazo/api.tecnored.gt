@@ -2,7 +2,7 @@ import { QueryInterface, DataTypes } from "sequelize";
 
 module.exports = {
   up: (queryInterface: QueryInterface): Promise<void> =>
-    queryInterface.createTable("user_role", {
+    queryInterface.createTable("usersRoles", {
       id: {
         allowNull: false,
         autoIncrement: true,

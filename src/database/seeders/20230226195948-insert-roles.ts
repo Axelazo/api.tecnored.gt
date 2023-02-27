@@ -30,7 +30,7 @@ module.exports = {
           updatedAt: new Date(),
         },
       ]),
-      queryInterface.bulkInsert("user_role", [
+      queryInterface.bulkInsert("usersRoles", [
         {
           userId: 1,
           roleId: 1,
@@ -55,7 +55,7 @@ module.exports = {
 
   down: (queryInterface: QueryInterface): Promise<number | object> => {
     return Promise.all([
-      queryInterface.bulkDelete("user_role", {}, {}),
+      queryInterface.bulkDelete("usersRoles", {}, {}),
       queryInterface.bulkDelete("roles", {}, {}),
     ]);
   },
