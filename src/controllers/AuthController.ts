@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import auth from "../config/auth";
 import bcrypt from "bcrypt";
-
 import User from "../models/User";
+import Role from "../models/Role";
 
 function signIn(request: Request, response: Response) {
   const { email, password } = request.body;
@@ -11,6 +11,14 @@ function signIn(request: Request, response: Response) {
   User.findOne({
     where: {
       email: email,
+    },
+    attributes: ["id", "firstName", "lastName", "password", "email"],
+    include: {
+      model: Role,
+      as: "roles",
+      through: {
+        attributes: [],
+      },
     },
   })
     .then((user) => {
@@ -22,13 +30,17 @@ function signIn(request: Request, response: Response) {
             expiresIn: auth.expires,
           });
 
-          const { id, firstName, lastName } = user;
+          const { id, firstName, lastName, email, roles } = user;
 
-          response.json({
-            id,
-            firstName,
-            lastName,
-            token: token,
+          response.status(200).json({
+            data: {
+              id,
+              firstName,
+              lastName,
+              email,
+              roles,
+              token,
+            },
           });
         } else {
           response
@@ -38,7 +50,8 @@ function signIn(request: Request, response: Response) {
       }
     })
     .catch((error) => {
-      response.status(500).json();
+      console.log(error);
+      response.status(500).json(error);
     });
 }
 
@@ -46,29 +59,39 @@ function signIn(request: Request, response: Response) {
 function signUp(request: Request, response: Response) {
   const { firstName, lastName, email, password } = request.body;
 
-  User.create({
-    firstName,
-    lastName,
-    email,
-    password,
-  })
-    .then((user) => {
-      const token = jwt.sign({ user: user }, auth.secret, {
-        expiresIn: auth.expires,
-      });
-
-      const { id, firstName, lastName } = user;
-
-      response.json({
-        id,
-        firstName,
-        lastName,
-        token: token,
-      });
+  Promise.all([
+    User.create({
+      firstName,
+      lastName,
+      email,
+      password,
     })
-    .catch((error) => {
-      response.status(500).json(error);
-    });
+      .then((user) => {
+        Role.findAll({
+          where: {
+            roleName: "user",
+          },
+        }).then((role) => {
+          user.setRoles(role);
+        });
+        const token = jwt.sign({ user: user }, auth.secret, {
+          expiresIn: auth.expires,
+        });
+
+        const { id, firstName, lastName, roles } = user;
+
+        response.json({
+          id,
+          firstName,
+          lastName,
+          roles,
+          token: token,
+        });
+      })
+      .catch((error) => {
+        response.status(500).json(error);
+      }),
+  ]);
 }
 
 export default { signIn, signUp };
