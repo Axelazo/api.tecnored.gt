@@ -1,36 +1,52 @@
-import { Model, Optional, DataTypes, BuildOptions } from "sequelize";
-import Role from "./Role";
+import {
+  Association,
+  HasManyGetAssociationsMixin,
+  Model,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+  NonAttribute,
+  DataTypes,
+} from "sequelize";
 import bcrypt from "bcrypt";
-import { sequelize } from "./index";
 import auth from "../config/auth";
 
-interface UserAttributes {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
+import { sequelize } from "./index";
+import Role from "./Role";
+
+// 'projects' is excluded as it's not an attribute, it's an association.
+class User extends Model<
+  InferAttributes<User, { omit: "roles" }>,
+  InferCreationAttributes<User, { omit: "roles" }>
+> {
+  // id can be undefined during creation when using `autoIncrement`
+  declare id: CreationOptional<number>;
+  declare firstName: string;
+  declare lastName: string; // for nullable fields
+  declare email: string;
+  declare password: string;
+
+  // timestamps!
+  // createdAt can be undefined during creation
+  declare createdAt: CreationOptional<Date>;
+  // updatedAt can be undefined during creation
+  declare updatedAt: CreationOptional<Date>;
+
+  // Since TS cannot determine model association at compile time
+  // we have to declare them here purely virtually
+  // these will not exist until `Model.init` was called.
+  declare getRoles: HasManyGetAssociationsMixin<Role>; // Note the null assertions!
+
+  // You can also pre-declare possible inclusions, these will only be populated if you
+  // actively include a relation.
+  declare roles?: NonAttribute<Role[]>; // Note this is optional since it's only populated when explicitly requested in code
+
+  declare static associations: {
+    projects: Association<User, Role>;
+  };
 }
 
-//We have to declare the AuthorCreationAttributes to
-//tell Sequelize and TypeScript that the property id,
-//in this case, is optional to be passed at creation time
-
-type UserCreationAttributes = Optional<UserAttributes, "id">;
-
-interface UserInstance
-  extends Model<UserAttributes, UserCreationAttributes>,
-    UserAttributes {
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-type UserStatic = typeof Model & { associate: (models: any) => void } & {
-  new (values?: Record<string, unknown>, options?: BuildOptions): UserInstance;
-};
-
-const User = <UserStatic>sequelize.define<UserInstance>(
-  "User",
+User.init(
   {
     id: {
       allowNull: false,
@@ -91,6 +107,8 @@ const User = <UserStatic>sequelize.define<UserInstance>(
         },
       },
     },
+    createdAt: DataTypes.DATE,
+    updatedAt: DataTypes.DATE,
   },
   {
     hooks: {
@@ -106,9 +124,11 @@ const User = <UserStatic>sequelize.define<UserInstance>(
       },
     },
     tableName: "users",
+    sequelize, // passing the `sequelize` instance is required
   }
 );
 
+// Here we associate which actually populates out pre-declared `association` static and other methods.
 User.belongsToMany(Role, {
   through: "usersRoles",
   as: "roles",
