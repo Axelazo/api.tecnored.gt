@@ -10,11 +10,11 @@ module.exports = {
         type: DataTypes.INTEGER,
         unique: true,
       },
-      firstName: {
+      firstNames: {
         allowNull: true,
         type: DataTypes.STRING,
       },
-      lastName: {
+      lastNames: {
         allowNull: false,
         type: DataTypes.STRING,
       },

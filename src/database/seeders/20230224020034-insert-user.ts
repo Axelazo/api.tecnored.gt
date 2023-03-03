@@ -9,9 +9,18 @@ module.exports = {
           "users",
           [
             {
-              firstName: "Axel",
-              lastName: "Aguilar",
+              firstNames: "Axel Isaí",
+              lastNames: "Aguilar Hernández",
               email: "admin@tecnored.gt",
+              password: salted,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+
+            {
+              firstNames: "Joselin Araceli",
+              lastNames: "Barrientos de la Cruz",
+              email: "admina@tecnored.gt",
               password: salted,
               createdAt: new Date(),
               updatedAt: new Date(),

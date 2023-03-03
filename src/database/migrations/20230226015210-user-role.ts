@@ -34,5 +34,5 @@ module.exports = {
     }),
 
   down: (queryInterface: QueryInterface): Promise<void> =>
-    queryInterface.dropTable("user_role"),
+    queryInterface.dropTable("usersRoles"),
 };
