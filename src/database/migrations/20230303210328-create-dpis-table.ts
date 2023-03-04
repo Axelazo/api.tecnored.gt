@@ -22,9 +22,6 @@ module.exports = {
         allowNull: true,
         type: DataTypes.STRING,
       },
-      updatedAt: {
-        type: DataTypes.DATE,
-      },
       personId: {
         allowNull: true,
         type: DataTypes.INTEGER,
@@ -32,6 +29,9 @@ module.exports = {
           model: "persons",
           key: "id",
         },
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
       },
       createdAt: {
         type: DataTypes.DATE,

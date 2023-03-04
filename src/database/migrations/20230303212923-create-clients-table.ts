@@ -18,10 +18,10 @@ module.exports = {
           key: "id",
         },
       },
-      createdAt: {
+      updatedAt: {
         type: DataTypes.DATE,
       },
-      updatedAt: {
+      createdAt: {
         type: DataTypes.DATE,
       },
     }),
