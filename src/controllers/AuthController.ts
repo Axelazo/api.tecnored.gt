@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import auth from "../config/auth";
 import bcrypt from "bcrypt";
+import auth from "../config/auth";
 import User from "../models/User";
 import Role from "../models/Role";
 
@@ -12,7 +12,6 @@ function signIn(request: Request, response: Response) {
     where: {
       email: email,
     },
-    attributes: ["id", "firstName", "lastName", "password", "email"],
     include: {
       model: Role,
       as: "roles",
@@ -30,13 +29,13 @@ function signIn(request: Request, response: Response) {
             expiresIn: auth.expires,
           });
 
-          const { id, firstName, lastName, email, roles } = user;
+          const { id, firstNames, lastNames, email, roles } = user;
 
           response.status(200).json({
             data: {
               id,
-              firstName,
-              lastName,
+              firstNames,
+              lastNames,
               email,
               roles,
               token,
@@ -57,12 +56,12 @@ function signIn(request: Request, response: Response) {
 
 //Registration for new user
 function signUp(request: Request, response: Response) {
-  const { firstName, lastName, email, password } = request.body;
+  const { firstNames, lastNames, email, password } = request.body;
 
   Promise.all([
     User.create({
-      firstName,
-      lastName,
+      firstNames,
+      lastNames,
       email,
       password,
     })
@@ -78,12 +77,12 @@ function signUp(request: Request, response: Response) {
           expiresIn: auth.expires,
         });
 
-        const { id, firstName, lastName, roles } = user;
+        const { id, firstNames, lastNames, roles } = user;
 
         response.json({
           id,
-          firstName,
-          lastName,
+          firstNames,
+          lastNames,
           roles,
           token: token,
         });
