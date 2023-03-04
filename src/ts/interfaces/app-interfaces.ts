@@ -1,11 +1,21 @@
 import { Request } from "express";
-import User from "../../models/User";
-
-//* Define an interface that extends the Request interface to include the `user` property
-// TODO: Research about Sequelize DTOs to handle user roles
 
 export interface AuthRequest extends Request {
-  user?: User;
+  user?: UserInterface;
+  roles?: RoleInterface[];
+  iat?: number;
+  exp?: number;
+}
+
+export interface UserInterface {
+  id: number;
+  firstNames: string;
+  lastNames: string;
+  email: string;
+  password: string;
+  createdAt: string;
+  updatedAt: string;
+  roles: RoleInterface[];
 }
 
 export interface AddressInterface {
@@ -32,4 +42,8 @@ export interface DpiInterface {
   number: string;
   dpiFrontUrl: string;
   dpiBackUrl: string;
+}
+
+export interface RoleInterface {
+  roleName: string;
 }
