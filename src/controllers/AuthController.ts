@@ -22,14 +22,14 @@ function signIn(request: Request, response: Response) {
   })
     .then((user) => {
       if (!user) {
-        response.status(400).json({ statusMessage: "User not found" });
+        response.status(400).json({ message: "Usuario no encontrado" });
       } else {
         if (bcrypt.compareSync(password, user.password)) {
+          const { id, firstNames, lastNames, email, roles } = user;
+
           const token = jwt.sign({ user: user }, auth.secret, {
             expiresIn: auth.expires,
           });
-
-          const { id, firstNames, lastNames, email, roles } = user;
 
           response.status(200).json({
             data: {
@@ -44,7 +44,7 @@ function signIn(request: Request, response: Response) {
         } else {
           response
             .status(401)
-            .json({ statusMessage: "Wrong email or password" });
+            .json({ message: "Correo electrónico o contraseña incorrecta" });
         }
       }
     })
@@ -68,7 +68,7 @@ function signUp(request: Request, response: Response) {
       .then((user) => {
         Role.findAll({
           where: {
-            roleName: "user",
+            roleName: "admin",
           },
         }).then((role) => {
           user.setRoles(role);
@@ -88,7 +88,7 @@ function signUp(request: Request, response: Response) {
         });
       })
       .catch((error) => {
-        response.status(500).json(error);
+        response.status(500).json({ message: "Error!" });
       }),
   ]);
 }
