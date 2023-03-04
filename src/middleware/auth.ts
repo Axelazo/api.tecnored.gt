@@ -13,7 +13,7 @@ function auth(request: AuthRequest, response: Response, next: NextFunction) {
       if (error) {
         response.status(500).json();
       } else {
-        request.user = decoded as typeof User;
+        request.user = <User>decoded;
         next();
       }
     });
