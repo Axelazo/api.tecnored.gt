@@ -16,7 +16,7 @@ class Dpi extends Model<InferAttributes<Dpi>, InferCreationAttributes<Dpi>> {
   declare id: CreationOptional<number>;
   declare number: string;
   declare dpiFrontUrl: string; // for nullable fields
-  declare dpiBackUrl: Date;
+  declare dpiBackUrl: string;
   declare personId: ForeignKey<Person["id"]>;
 
   // timestamps!
@@ -61,6 +61,13 @@ Dpi.init(
     dpiFrontUrl: {
       allowNull: true,
       type: DataTypes.STRING,
+    },
+    personId: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: "persons",
+        key: "id",
+      },
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,

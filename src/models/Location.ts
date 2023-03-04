@@ -29,7 +29,7 @@ class Location extends Model<
   declare setAddress: HasOneSetAssociationMixin<Address, number>;
 
   declare static associations: {
-    person: Association<Location, Address>;
+    address: Association<Location, Address>;
   };
 }
 
@@ -50,6 +50,13 @@ Location.init(
       allowNull: true,
       type: DataTypes.STRING,
     },
+    addressId: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: Address,
+        key: "id",
+      },
+    },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
   },
@@ -59,7 +66,7 @@ Location.init(
   }
 );
 
-Location.belongsTo(Address);
-Address.hasOne(Location);
+Location.belongsTo(Address, { foreignKey: "addressId", as: "location" });
+Address.hasOne(Location, { foreignKey: "addressId", as: "location" });
 
 export default Location;

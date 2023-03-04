@@ -39,6 +39,13 @@ Client.init(
       type: DataTypes.INTEGER,
       unique: true,
     },
+    personId: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: Person,
+        key: "id",
+      },
+    },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
   },
@@ -48,7 +55,7 @@ Client.init(
   }
 );
 
-Client.belongsTo(Person);
-Person.hasOne(Client);
+Client.belongsTo(Person, { foreignKey: "personId", as: "client" });
+Person.hasOne(Client, { foreignKey: "personId", as: "client" });
 
 export default Client;

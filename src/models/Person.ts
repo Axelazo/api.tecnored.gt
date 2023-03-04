@@ -8,6 +8,7 @@ import {
 } from "sequelize";
 import { sequelize } from "./index";
 import Dpi from "./Dpi";
+import Client from "./Client";
 
 class Person extends Model<
   InferAttributes<Person>,
@@ -70,7 +71,7 @@ Person.init(
   }
 );
 
-Person.hasOne(Dpi);
-Dpi.belongsTo(Person);
+Person.hasOne(Dpi, { foreignKey: "personId", as: "dpi" });
+Dpi.belongsTo(Person, { foreignKey: "personId", as: "dpi" });
 
 export default Person;

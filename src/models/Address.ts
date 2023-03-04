@@ -65,6 +65,13 @@ Address.init(
       allowNull: true,
       type: DataTypes.STRING,
     },
+    personId: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: Person,
+        key: "id",
+      },
+    },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
   },
@@ -74,7 +81,7 @@ Address.init(
   }
 );
 
-Address.belongsTo(Person);
-Person.hasMany(Address);
+Address.belongsTo(Person, { foreignKey: "personId", as: "address" });
+Person.hasOne(Address, { foreignKey: "personId", as: "address" });
 
 export default Address;
