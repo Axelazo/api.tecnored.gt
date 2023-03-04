@@ -5,5 +5,5 @@ import User from "../../models/User";
 // TODO: Research about Sequelize DTOs to handle user roles
 
 export interface AuthRequest extends Request {
-  user?: typeof User;
+  user?: User;
 }
