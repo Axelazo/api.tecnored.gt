@@ -18,26 +18,11 @@ router.get(
   Auth.checkRoles(allowedRoles),
   ClientController.getAllClients
 );
-
-router.get(
-  "/:id",
-  Auth.authenticate,
-  Auth.checkRoles(allowedRoles),
-  ClientController.getClientById
-);
-
 router.post(
   "/create",
   Auth.authenticate,
   Auth.checkRoles(allowedRoles),
   ClientController.createClient
-);
-
-router.put(
-  "/update/:id",
-  Auth.authenticate,
-  Auth.checkRoles(allowedRoles),
-  ClientController.updateClient
 );
 
 export default router;
