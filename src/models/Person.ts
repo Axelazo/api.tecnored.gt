@@ -5,10 +5,14 @@ import {
   InferCreationAttributes,
   CreationOptional,
   DataTypes,
+  HasOneGetAssociationMixin,
+  HasManyGetAssociationsMixin,
 } from "sequelize";
 import { sequelize } from "./index";
 import Dpi from "./Dpi";
 import Client from "./Client";
+import Address from "./Address";
+import Phone from "./Phone";
 
 class Person extends Model<
   InferAttributes<Person>,
@@ -24,8 +28,13 @@ class Person extends Model<
   // updatedAt can be undefined during creation
   declare updatedAt: CreationOptional<Date>;
 
+  declare getAddress: HasOneGetAssociationMixin<Address>;
+  declare getPhones: HasManyGetAssociationsMixin<Phone>;
+
   declare static associations: {
     dpis: Association<Person, Dpi>;
+    address: Association<Person, Address>;
+    phones: Association<Person, Phone>;
   };
 }
 
