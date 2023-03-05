@@ -15,8 +15,9 @@ import Location from "../models/Location";
 import Client from "../models/Client";
 import Phone from "../models/Phone";
 
-//TODO: Find why the personId = newPerson.id is not taking into  account when inserting data
-//TODO: Need to use .setPerson method, but maybe it can't be needed
+// TODO: Find why the personId = newPerson.id is not taking into  account when inserting data
+// TODO: Need to use .setPerson method, but maybe it can't be needed
+// TODO: Implement validation, delete sensitive fields,
 export const createClient = async (
   request: AuthRequest,
   response: Response
@@ -103,21 +104,15 @@ export const createClient = async (
         { transaction: t }
       );
 
-      /*       newClient.setPerson(newPerson);
-      newDpi.setPerson(newPerson);
-      newAddress.setPerson(newPerson);
-      newLocation.setAddress(newAddress);
-      newPhones.forEach((phone) => {
-        phone.setPerson(newPerson);
-      }); */
-
       response.status(200).json({
-        newPerson,
-        newDpi,
-        newClient,
-        newAddress,
-        newLocation,
-        newPhones,
+        data: {
+          newPerson,
+          newDpi,
+          newClient,
+          newAddress,
+          newLocation,
+          newPhones,
+        },
       });
     });
   } catch (error) {
@@ -133,30 +128,27 @@ export const getAllClients = async (
   response: Response
 ) => {
   try {
-    const clients = await Person.findAll({
+    const clients = await Client.findAll({
       include: [
         {
-          model: Client,
-          as: "client",
-        },
-        {
-          model: Address,
-          as: "address",
+          model: Person,
+          as: "person",
           include: [
             {
-              model: Location,
-              as: "location",
+              model: Address,
+              as: "address",
             },
+            { model: Phone, as: "phones" },
           ],
         },
-        { model: Phone, as: "phones" },
       ],
+      attributes: { exclude: ["personId"] }, // Exclude the personId field
     });
 
     const clientsAmount = clients.length;
 
     if (clientsAmount > 0) {
-      response.status(200).json(clients);
+      response.status(200).json({ data: clients });
     } else {
       response
         .status(404)
@@ -168,4 +160,221 @@ export const getAllClients = async (
   }
 };
 
-export default { createClient, getAllClients };
+export const getClientById = async (
+  request: AuthRequest,
+  response: Response
+) => {
+  try {
+    const { id } = request.params;
+    const client = await Client.findOne({
+      where: { id },
+      include: [
+        {
+          model: Person,
+          as: "person",
+          include: [
+            {
+              model: Address,
+              as: "address",
+              include: [
+                {
+                  model: Location,
+                  as: "location",
+                },
+              ],
+            },
+            {
+              model: Phone,
+              as: "phones",
+            },
+          ],
+        },
+      ],
+      attributes: { exclude: ["personId"] },
+    });
+
+    if (client) {
+      response.status(200).json({ data: client });
+    } else {
+      response.status(404).json({ message: "El cliente no se ha encontrado" });
+    }
+  } catch (error) {
+    console.error(error);
+    response
+      .status(500)
+      .json({ message: "Hubo un problema el procesar la petición" });
+  }
+};
+
+export const updateClient = async (
+  request: AuthRequest,
+  response: Response
+) => {
+  const { id } = request.params;
+
+  const {
+    firstNames,
+    lastNames,
+    birthday,
+    address,
+    phones,
+  }: {
+    firstNames: string;
+    lastNames: string;
+    birthday: Date;
+    dpi: DpiInterface;
+    address: AddressInterface;
+    phones: PhoneInterface[];
+  } = request.body;
+
+  const phoneInstances: PhoneInterface[] = phones.map((phone) => ({
+    type: phone.type,
+    number: phone.number,
+  }));
+
+  try {
+    sequelize.transaction(async (t: Transaction) => {
+      // Update the person
+      const client = await Client.findOne({
+        where: { id },
+        include: [
+          {
+            model: Person,
+            as: "person",
+            include: [
+              {
+                model: Address,
+                as: "address",
+                include: [
+                  {
+                    model: Location,
+                    as: "location",
+                  },
+                ],
+              },
+              {
+                model: Phone,
+                as: "phones",
+              },
+            ],
+          },
+        ],
+        transaction: t,
+      });
+
+      if (!client) {
+        const message = `No se ha encontrado el cliente`;
+        response.status(404).json({ message });
+        return;
+      }
+
+      const person = await client.getPerson();
+
+      if (!person) {
+        const message = `No se han encontrado los datos personales del cliente`;
+        response.status(500).json({ message });
+        return;
+      }
+
+      person.firstNames = firstNames;
+      person.lastNames = lastNames;
+      person.birthday = birthday;
+
+      await person.save({ transaction: t, hooks: true });
+
+      const addressInstance = await person.getAddress();
+
+      // Update the address
+      /*       const addressInstance = await Address.findOne({
+        where: { personId: client.personId },
+        transaction: t,
+      }); */
+
+      if (!addressInstance) {
+        const message = `No se ha encontrado la direccion del cliente`;
+        response.status(500).json({ message });
+        return;
+      }
+
+      addressInstance.street = address.street;
+      addressInstance.city = address.city;
+      addressInstance.state = address.state;
+      addressInstance.zipCode = address.zipCode;
+
+      const locationInstance = await addressInstance.getLocation();
+
+      /*       const locationInstance = await Location.findOne({
+        where: { addressId: addressInstance.id },
+        transaction: t,
+      }); */
+
+      if (!locationInstance) {
+        const message = `No se ha encontrado la ubicación de la dirección del cliente`;
+        response.status(500).json({ message });
+        return;
+      }
+
+      locationInstance.latitude = address.location.latitude;
+      locationInstance.longitude = address.location.longitude;
+
+      await locationInstance.save({ transaction: t, hooks: true });
+      await addressInstance.save({ transaction: t, hooks: true });
+
+      if (!phoneInstances) {
+        const message = `No se ha encontrado los teléfonos del cliente`;
+        response.status(500).json({ message });
+        return;
+      }
+      // Update the phones
+      const existingPhones = await Phone.findAll({
+        where: { personId: person.id },
+        transaction: t,
+      });
+
+      const existingPhoneNumbers = existingPhones.map((phone) => phone.number);
+
+      // Find phones to add and update
+      const phonesToAdd = phoneInstances.filter(
+        (phone) => !existingPhoneNumbers.includes(phone.number)
+      );
+      const phonesToUpdate = phoneInstances.filter((phone) =>
+        existingPhoneNumbers.includes(phone.number)
+      );
+
+      // Add new phones
+      for (const phone of phonesToAdd) {
+        const phoneInstance = await Phone.create(
+          {
+            ...phone,
+            personId: person.id,
+          },
+          { transaction: t }
+        );
+
+        existingPhones.push(phoneInstance);
+      }
+
+      // Update existing phones
+      for (const phone of phonesToUpdate) {
+        const phoneInstance = existingPhones.find(
+          (p) => p.number === phone.number
+        );
+
+        if (!phoneInstance) {
+          continue;
+        }
+
+        phoneInstance.type = phone.type;
+
+        await phoneInstance.save({ transaction: t, hooks: true });
+      }
+
+      response.status(200).json({ client });
+    });
+  } catch (error) {
+    const message = `La transacción falló`;
+    response.status(500).json({ message });
+  }
+};
+
+export default { createClient, getAllClients, getClientById, updateClient };
