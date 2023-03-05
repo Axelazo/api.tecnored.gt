@@ -7,6 +7,7 @@ import {
   DataTypes,
   ForeignKey,
   HasOneSetAssociationMixin,
+  HasOneGetAssociationMixin,
 } from "sequelize";
 import Address from "./Address";
 import { sequelize } from "./index";
@@ -27,6 +28,7 @@ class Location extends Model<
   declare updatedAt: CreationOptional<Date>;
 
   declare setAddress: HasOneSetAssociationMixin<Address, number>;
+  declare getAddress: HasOneGetAssociationMixin<Address>;
 
   declare static associations: {
     address: Association<Location, Address>;
