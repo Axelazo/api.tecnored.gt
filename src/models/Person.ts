@@ -30,9 +30,10 @@ class Person extends Model<
 
   declare getAddress: HasOneGetAssociationMixin<Address>;
   declare getPhones: HasManyGetAssociationsMixin<Phone>;
+  declare getDpi: HasOneGetAssociationMixin<Dpi>;
 
   declare static associations: {
-    dpis: Association<Person, Dpi>;
+    dpi: Association<Person, Dpi>;
     address: Association<Person, Address>;
     phones: Association<Person, Phone>;
   };

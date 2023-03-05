@@ -33,4 +33,11 @@ router.put(
   ClientController.updateClient
 );
 
+router.delete(
+  "/delete/:id",
+  Auth.authenticate,
+  Auth.checkRoles(allowedRoles),
+  ClientController.deleteClient
+);
+
 export default router;

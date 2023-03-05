@@ -377,4 +377,76 @@ export const updateClient = async (
   }
 };
 
-export default { createClient, getAllClients, getClientById, updateClient };
+//Refactor migrations, models to add softDelete functionalities
+export const deleteClient = async (
+  request: AuthRequest,
+  response: Response
+) => {
+  const { id } = request.params;
+
+  try {
+    await sequelize.transaction(async (t) => {
+      const client = await Client.findOne({
+        where: { id },
+        include: [
+          {
+            model: Person,
+            as: "person",
+            include: [
+              {
+                model: Address,
+                as: "address",
+                include: [
+                  {
+                    model: Location,
+                    as: "location",
+                  },
+                ],
+              },
+              {
+                model: Phone,
+                as: "phones",
+              },
+            ],
+          },
+        ],
+        transaction: t,
+      });
+
+      if (!client) {
+        const message = `No se ha encontrado el cliente`;
+        response.status(404).json({ message });
+        return;
+      }
+
+      const person = await client.getPerson();
+      const dpi = await person.getDpi();
+      const address = await person.getAddress();
+      const location = await address.getLocation();
+      const phones = await person.getPhones();
+
+      await Promise.all([
+        client.destroy({ transaction: t }),
+        address.destroy({ transaction: t }),
+        location.destroy({ transaction: t }),
+        dpi.destroy({ transaction: t }),
+        ...phones.map((phone) => phone.destroy({ transaction: t })),
+        person.destroy({ transaction: t }),
+      ]);
+
+      response.status(200).json({ message: "Cliente eliminado exitosamente" });
+    });
+  } catch (error) {
+    console.log(error);
+    const message = `La transacción falló`;
+    response.status(500).json({ message });
+  }
+};
+
+export default {
+  createClient,
+  getAllClients,
+  getClientById,
+  updateClient,
+  deleteClient,
+};
