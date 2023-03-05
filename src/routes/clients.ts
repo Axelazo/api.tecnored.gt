@@ -27,7 +27,7 @@ router.post(
 );
 
 router.put(
-  "/create",
+  "/update/:id",
   Auth.authenticate,
   Auth.checkRoles(allowedRoles),
   ClientController.updateClient
