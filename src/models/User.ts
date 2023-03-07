@@ -7,6 +7,7 @@ import {
   CreationOptional,
   NonAttribute,
   DataTypes,
+  HasManySetAssociationsMixin,
 } from "sequelize";
 import bcrypt from "bcrypt";
 import auth from "../config/auth";
@@ -21,8 +22,8 @@ class User extends Model<
 > {
   // id can be undefined during creation when using `autoIncrement`
   declare id: CreationOptional<number>;
-  declare firstName: string;
-  declare lastName: string; // for nullable fields
+  declare firstNames: string;
+  declare lastNames: string; // for nullable fields
   declare email: string;
   declare password: string;
 
@@ -31,11 +32,13 @@ class User extends Model<
   declare createdAt: CreationOptional<Date>;
   // updatedAt can be undefined during creation
   declare updatedAt: CreationOptional<Date>;
+  //declare deletedAt: CreationOptional<Date>;
 
   // Since TS cannot determine model association at compile time
   // we have to declare them here purely virtually
   // these will not exist until `Model.init` was called.
   declare getRoles: HasManyGetAssociationsMixin<Role>; // Note the null assertions!
+  declare setRoles: HasManySetAssociationsMixin<Role, number>;
 
   // You can also pre-declare possible inclusions, these will only be populated if you
   // actively include a relation.
@@ -55,26 +58,20 @@ User.init(
       type: DataTypes.INTEGER,
       unique: true,
     },
-    firstName: {
+    firstNames: {
       allowNull: true,
       type: DataTypes.STRING,
       validate: {
-        isAlpha: {
-          msg: "Name can only contain letters",
-        },
         len: {
           args: [3, 255],
           msg: "Name needs to be at least 3 chars",
         },
       },
     },
-    lastName: {
+    lastNames: {
       allowNull: false,
       type: DataTypes.STRING,
       validate: {
-        isAlpha: {
-          msg: "Last Name can only contain letters",
-        },
         len: {
           args: [3, 255],
           msg: "Last Name needs to be at least 3 chars",
@@ -109,6 +106,7 @@ User.init(
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
+    //deletedAt: DataTypes.DATE,
   },
   {
     hooks: {

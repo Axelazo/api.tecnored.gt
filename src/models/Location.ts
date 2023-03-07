@@ -26,6 +26,7 @@ class Location extends Model<
   declare createdAt: CreationOptional<Date>;
   // updatedAt can be undefined during creation
   declare updatedAt: CreationOptional<Date>;
+  declare deletedAt: CreationOptional<Date>;
 
   declare setAddress: HasOneSetAssociationMixin<Address, number>;
   declare getAddress: HasOneGetAssociationMixin<Address>;
@@ -61,6 +62,7 @@ Location.init(
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
+    deletedAt: DataTypes.DATE,
   },
   {
     tableName: "locations",

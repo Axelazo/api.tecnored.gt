@@ -23,6 +23,7 @@ class Phone extends Model<
   declare createdAt: CreationOptional<Date>;
   // updatedAt can be undefined during creation
   declare updatedAt: CreationOptional<Date>;
+  declare deletedAt: CreationOptional<Date>;
 
   declare setPerson: HasOneSetAssociationMixin<Person, number>;
 
@@ -46,6 +47,7 @@ Phone.init(
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
+    deletedAt: DataTypes.DATE,
   },
   {
     tableName: "phones",

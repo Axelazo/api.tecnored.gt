@@ -32,6 +32,9 @@ module.exports = {
       createdAt: {
         type: DataTypes.DATE,
       },
+      deletedAt: {
+        type: DataTypes.DATE,
+      },
     }),
 
   down: (queryInterface: QueryInterface): Promise<void> =>

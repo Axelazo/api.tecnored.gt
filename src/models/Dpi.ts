@@ -24,6 +24,7 @@ class Dpi extends Model<InferAttributes<Dpi>, InferCreationAttributes<Dpi>> {
   declare createdAt: CreationOptional<Date>;
   // updatedAt can be undefined during creation
   declare updatedAt: CreationOptional<Date>;
+  declare deletedAt: CreationOptional<Date>;
 
   declare setPerson: HasOneSetAssociationMixin<Person, number>;
 
@@ -71,6 +72,7 @@ Dpi.init(
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
+    deletedAt: DataTypes.DATE,
   },
   {
     tableName: "dpis",
