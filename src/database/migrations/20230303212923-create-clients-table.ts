@@ -10,6 +10,10 @@ module.exports = {
         type: DataTypes.INTEGER,
         unique: true,
       },
+      clientNumber: {
+        allowNull: false,
+        type: DataTypes.STRING,
+      },
       personId: {
         allowNull: true,
         type: DataTypes.INTEGER,
