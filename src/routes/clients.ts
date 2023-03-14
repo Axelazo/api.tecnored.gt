@@ -19,6 +19,13 @@ router.get(
   ClientController.getAllClients
 );
 
+router.get(
+  "/:id",
+  Auth.authenticate,
+  Auth.checkRoles(allowedRoles),
+  ClientController.getClientById
+);
+
 router.post(
   "/create",
   Auth.authenticate,
