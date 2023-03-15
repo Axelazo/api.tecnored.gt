@@ -17,11 +17,10 @@ class Client extends Model<
   InferCreationAttributes<Client>
 > {
   declare id: CreationOptional<number>;
+  declare clientNumber: number;
   declare personId: ForeignKey<Person["id"]>;
   // timestamps!
-  // createdAt can be undefined during creation
   declare createdAt: CreationOptional<Date>;
-  // updatedAt can be undefined during creation
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
 
@@ -41,6 +40,10 @@ Client.init(
       primaryKey: true,
       type: DataTypes.INTEGER,
       unique: true,
+    },
+    clientNumber: {
+      allowNull: false,
+      type: DataTypes.INTEGER,
     },
     personId: {
       type: DataTypes.INTEGER,

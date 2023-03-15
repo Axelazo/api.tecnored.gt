@@ -7,10 +7,8 @@ import {
   DataTypes,
   ForeignKey,
   HasOneSetAssociationMixin,
-  HasOneGetAssociationMixin,
 } from "sequelize";
 import { sequelize } from "./index";
-import Location from "./Location";
 import Person from "./Person";
 
 class Address extends Model<
@@ -23,21 +21,15 @@ class Address extends Model<
   declare city: string;
   declare state: string;
   declare zipCode: string;
-
   declare personId: ForeignKey<Person["id"]>;
   // timestamps!
-  // createdAt can be undefined during creation
   declare createdAt: CreationOptional<Date>;
-  // updatedAt can be undefined during creation
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
-
   declare setPerson: HasOneSetAssociationMixin<Person, number>;
-  declare getLocation: HasOneGetAssociationMixin<Location>;
 
   declare static associations: {
     person: Association<Address, Person>;
-    location: Association<Address, Location>;
   };
 }
 
