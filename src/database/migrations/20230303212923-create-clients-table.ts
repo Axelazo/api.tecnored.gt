@@ -12,7 +12,7 @@ module.exports = {
       },
       clientNumber: {
         allowNull: false,
-        type: DataTypes.STRING,
+        type: DataTypes.INTEGER,
       },
       personId: {
         allowNull: true,

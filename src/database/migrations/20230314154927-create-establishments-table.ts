@@ -14,13 +14,13 @@ module.exports = {
         allowNull: false,
         type: DataTypes.STRING,
       },
-      addressId: {
-        allowNull: true,
-        type: DataTypes.INTEGER,
-        references: {
-          model: "addresses",
-          key: "id",
-        },
+      latitude: {
+        allowNull: false,
+        type: DataTypes.STRING,
+      },
+      longitude: {
+        allowNull: false,
+        type: DataTypes.STRING,
       },
       updatedAt: {
         type: DataTypes.DATE,

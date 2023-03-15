@@ -12,7 +12,7 @@ module.exports = {
       },
       serviceNumber: {
         allowNull: true,
-        type: DataTypes.STRING,
+        type: DataTypes.INTEGER,
       },
       ipAddress: {
         allowNull: true,
@@ -22,7 +22,7 @@ module.exports = {
         allowNull: false,
         type: DataTypes.INTEGER,
         references: {
-          model: "addresses",
+          model: "servicesaddresses",
           key: "id",
         },
       },
