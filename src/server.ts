@@ -16,7 +16,7 @@ const port: number = parseInt(<string>process.env.PORT, 10) || 4000;
 app.use(cors({ origin: "http://localhost:3000" }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-//app.use(morgan("combined"));
+app.use(morgan("combined"));
 
 //Routes
 app.use(router);
