@@ -17,7 +17,7 @@ class Client extends Model<
   InferCreationAttributes<Client>
 > {
   declare id: CreationOptional<number>;
-  declare clientNumber: number;
+  declare clientNumber: string;
   declare personId: ForeignKey<Person["id"]>;
   // timestamps!
   declare createdAt: CreationOptional<Date>;
@@ -43,7 +43,7 @@ Client.init(
     },
     clientNumber: {
       allowNull: false,
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
     },
     personId: {
       type: DataTypes.INTEGER,
