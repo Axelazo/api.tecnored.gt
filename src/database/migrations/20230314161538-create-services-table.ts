@@ -12,7 +12,7 @@ module.exports = {
       },
       serviceNumber: {
         allowNull: true,
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
       },
       ipAddress: {
         allowNull: true,
