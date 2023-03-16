@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import morgan from "morgan";
 import { sequelize } from "./models/index";
+import * as path from "path";
 
 dotenv.config({ path: __dirname + "/.env" });
 
@@ -17,9 +18,9 @@ app.use(cors({ origin: "http://localhost:3000" }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(morgan("combined"));
-
 //Routes
 app.use(router);
+app.use("/public", express.static(path.join(__dirname, "/public/")));
 
 app.listen(port, () => {
   console.log(
