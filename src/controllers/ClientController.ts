@@ -7,16 +7,37 @@ import {
   AuthRequest,
 } from "../ts/interfaces/app-interfaces";
 import { Transaction } from "sequelize";
-
 import Dpi from "../models/Dpi";
 import Person from "../models/Person";
 import Address from "../models/Address";
-import Location from "../models/Location";
 import Client from "../models/Client";
 import Phone from "../models/Phone";
+import { randomInt } from "crypto";
 
-// TODO: Find why the personId = newPerson.id is not taking into  account when inserting data
-// TODO: Need to use .setPerson method, but maybe it can't be needed
+async function generateClientNumber() {
+  let clientNumber;
+  let collision = true;
+  while (collision) {
+    // Step 1: Retrieve the current count of clients
+    const clientCount = await Client.count();
+
+    // Step 2: Generate a random 8-digit number
+    const random = randomInt(10000000, 99999999);
+
+    // Step 3: Combine the client count and the random number
+    clientNumber = parseInt(
+      clientCount.toString().padStart(8, "0") + random
+    ).toString();
+
+    // Step 4: Check for collisions
+    const existingClient = await Client.findOne({ where: { clientNumber } });
+    collision = !!existingClient;
+  }
+
+  // Step 5: Return the generated client number
+  return clientNumber ? clientNumber : "";
+}
+
 // TODO: Implement validation, delete sensitive fields,
 export const createClient = async (
   request: AuthRequest,
@@ -38,6 +59,7 @@ export const createClient = async (
     phones: PhoneInterface[];
   } = request.body;
 
+  const url = `${request.protocol}://${request.get("host")}`;
   const phoneInstances: PhoneInterface[] = phones.map((phone) => ({
     type: phone.type,
     number: phone.number,
@@ -65,10 +87,42 @@ export const createClient = async (
         transaction: t,
       });
 
-      //Creates the dpi
+      let dpiFrontUrl = null;
+      let dpiBackUrl = null;
+
+      if (request.files) {
+        const filesArray = Array.isArray(request.files)
+          ? request.files
+          : Object.values(request.files);
+
+        for (const file of filesArray) {
+          if (Array.isArray(file)) {
+            for (const f of file) {
+              if (f.fieldname === "dpiFront") {
+                dpiFrontUrl = `${url}/public/${f.filename}`;
+              } else if (f.fieldname === "dpiBack") {
+                dpiBackUrl = `${url}/public/${f.filename}`;
+              }
+            }
+          } else {
+            if (file.fieldname === "dpiFront") {
+              dpiFrontUrl = `${url}/public/${file.filename}`;
+            } else if (file.fieldname === "dpiBack") {
+              dpiBackUrl = `${url}/public/${file.filename}`;
+            }
+          }
+        }
+      }
+
+      if (!dpiFrontUrl || !dpiBackUrl) {
+        throw new Error("No hay files!");
+      }
+
       const newDpi = await Dpi.create(
         {
-          ...dpi,
+          number: dpi.number,
+          dpiFrontUrl: dpiFrontUrl,
+          dpiBackUrl: dpiBackUrl,
           personId: newPerson.id,
         },
         {
@@ -87,31 +141,18 @@ export const createClient = async (
         }
       );
 
-      //Creates the location for the address above
-      const newLocation = await Location.create(
-        {
-          ...address.location,
-          addressId: newAddress.id,
-        },
-        {
-          transaction: t,
-        }
-      );
+      //Creates the unique clientNumber
+      const clientNumber = await generateClientNumber();
 
       //Finaly we create the client when the whole data is complete!
       const newClient = await Client.create(
-        { personId: newPerson.id },
+        { personId: newPerson.id, clientNumber },
         { transaction: t }
       );
 
       response.status(200).json({
         data: {
-          newPerson,
-          newDpi,
-          newClient,
-          newAddress,
-          newLocation,
-          newPhones,
+          clientId: newClient.dataValues.id,
         },
       });
     });
@@ -174,14 +215,12 @@ export const getClientById = async (
           as: "person",
           include: [
             {
+              model: Dpi,
+              as: "dpi",
+            },
+            {
               model: Address,
               as: "address",
-              include: [
-                {
-                  model: Location,
-                  as: "location",
-                },
-              ],
             },
             {
               model: Phone,
@@ -245,12 +284,6 @@ export const updateClient = async (
               {
                 model: Address,
                 as: "address",
-                include: [
-                  {
-                    model: Location,
-                    as: "location",
-                  },
-                ],
               },
               {
                 model: Phone,
@@ -300,25 +333,6 @@ export const updateClient = async (
       addressInstance.city = address.city;
       addressInstance.state = address.state;
       addressInstance.zipCode = address.zipCode;
-
-      const locationInstance = await addressInstance.getLocation();
-
-      /*       const locationInstance = await Location.findOne({
-        where: { addressId: addressInstance.id },
-        transaction: t,
-      }); */
-
-      if (!locationInstance) {
-        const message = `No se ha encontrado la ubicación de la dirección del cliente`;
-        response.status(500).json({ message });
-        return;
-      }
-
-      locationInstance.latitude = address.location.latitude;
-      locationInstance.longitude = address.location.longitude;
-
-      await locationInstance.save({ transaction: t, hooks: true });
-      await addressInstance.save({ transaction: t, hooks: true });
 
       if (!phoneInstances) {
         const message = `No se ha encontrado los teléfonos del cliente`;
@@ -396,12 +410,6 @@ export const deleteClient = async (
               {
                 model: Address,
                 as: "address",
-                include: [
-                  {
-                    model: Location,
-                    as: "location",
-                  },
-                ],
               },
               {
                 model: Phone,
@@ -422,13 +430,11 @@ export const deleteClient = async (
       const person = await client.getPerson();
       const dpi = await person.getDpi();
       const address = await person.getAddress();
-      const location = await address.getLocation();
       const phones = await person.getPhones();
 
       await Promise.all([
         client.destroy({ transaction: t }),
         address.destroy({ transaction: t }),
-        location.destroy({ transaction: t }),
         dpi.destroy({ transaction: t }),
         ...phones.map((phone) => phone.destroy({ transaction: t })),
         person.destroy({ transaction: t }),
