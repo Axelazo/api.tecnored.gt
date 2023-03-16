@@ -1,5 +1,6 @@
 import { Router } from "express";
 import Auth from "../middleware/auth";
+import upload from "../middleware/upload";
 import { RoleInterface } from "../ts/interfaces/app-interfaces";
 import ClientController from "../controllers/ClientController";
 
@@ -28,6 +29,10 @@ router.get(
 
 router.post(
   "/create",
+  upload.fields([
+    { name: "dpiFront", maxCount: 1 },
+    { name: "dpiBack", maxCount: 1 },
+  ]),
   Auth.authenticate,
   Auth.checkRoles(allowedRoles),
   ClientController.createClient
