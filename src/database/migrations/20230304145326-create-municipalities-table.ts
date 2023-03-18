@@ -15,7 +15,7 @@ module.exports = {
         type: DataTypes.STRING,
       },
       departmentId: {
-        allowNull: true,
+        allowNull: false,
         type: DataTypes.INTEGER,
         references: {
           model: "departments",

@@ -18,13 +18,25 @@ module.exports = {
         allowNull: true,
         type: DataTypes.STRING,
       },
-      city: {
+      locality: {
         allowNull: true,
         type: DataTypes.STRING,
       },
-      state: {
+      departmentId: {
         allowNull: true,
-        type: DataTypes.STRING,
+        type: DataTypes.INTEGER,
+        references: {
+          model: "departments",
+          key: "id",
+        },
+      },
+      municipalityId: {
+        allowNull: true,
+        type: DataTypes.INTEGER,
+        references: {
+          model: "municipalities",
+          key: "id",
+        },
       },
       zipCode: {
         allowNull: true,
