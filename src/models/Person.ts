@@ -21,7 +21,7 @@ class Person extends Model<
   declare id: CreationOptional<number>;
   declare firstNames: string;
   declare lastNames: string; // for nullable fields
-  declare birthday: Date;
+  declare birthday: CreationOptional<Date>;
   // timestamps!
   // createdAt can be undefined during creation
   declare createdAt: CreationOptional<Date>;
