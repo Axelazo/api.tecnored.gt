@@ -8,7 +8,9 @@ import {
   ForeignKey,
   HasOneSetAssociationMixin,
 } from "sequelize";
+import Department from "./Department";
 import { sequelize } from "./index";
+import Municipality from "./Municipality";
 import Person from "./Person";
 
 class Address extends Model<
@@ -18,10 +20,12 @@ class Address extends Model<
   declare id: CreationOptional<number>;
   declare type: string;
   declare street: string;
-  declare city: string;
-  declare state: string;
-  declare zipCode: string;
+  declare locality: string;
+  declare municipalityId: ForeignKey<Municipality["id"]>;
+  declare departmentId: ForeignKey<Department["id"]>;
   declare personId: ForeignKey<Person["id"]>;
+  declare zipCode: string;
+
   // timestamps!
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
@@ -43,31 +47,36 @@ Address.init(
       unique: true,
     },
     type: {
-      allowNull: true,
+      allowNull: false,
       type: DataTypes.STRING,
     },
     street: {
-      allowNull: true,
+      allowNull: false,
       type: DataTypes.STRING,
     },
-    city: {
-      allowNull: true,
+    locality: {
+      allowNull: false,
       type: DataTypes.STRING,
     },
-    state: {
-      allowNull: true,
-      type: DataTypes.STRING,
+    municipalityId: {
+      allowNull: false,
+      type: DataTypes.INTEGER,
+      references: {
+        model: Municipality,
+        key: "id",
+      },
+    },
+    departmentId: {
+      allowNull: false,
+      type: DataTypes.INTEGER,
+      references: {
+        model: Department,
+        key: "id",
+      },
     },
     zipCode: {
       allowNull: true,
       type: DataTypes.STRING,
-    },
-    personId: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: Person,
-        key: "id",
-      },
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
