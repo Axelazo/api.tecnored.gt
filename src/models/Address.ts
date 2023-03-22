@@ -34,6 +34,8 @@ class Address extends Model<
 
   declare static associations: {
     person: Association<Address, Person>;
+    //department: Association<Address, Department>;
+    municipality: Association<Address, Municipality>;
   };
 }
 
@@ -47,7 +49,7 @@ Address.init(
       unique: true,
     },
     type: {
-      allowNull: false,
+      allowNull: true,
       type: DataTypes.STRING,
     },
     street: {
@@ -90,5 +92,10 @@ Address.init(
 
 Address.belongsTo(Person, { foreignKey: "personId", as: "address" });
 Person.hasOne(Address, { foreignKey: "personId", as: "address" });
+Address.belongsTo(Department, { foreignKey: "departmentId", as: "department" });
+Address.belongsTo(Municipality, {
+  foreignKey: "municipalityId",
+  as: "municipality",
+});
 
 export default Address;
