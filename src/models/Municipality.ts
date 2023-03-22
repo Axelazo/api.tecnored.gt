@@ -58,10 +58,4 @@ Municipality.init(
   }
 );
 
-Municipality.belongsTo(Department, {
-  foreignKey: "departmentId",
-  as: "municipalities",
-});
-Department.hasMany(Municipality);
-
 export default Municipality;
