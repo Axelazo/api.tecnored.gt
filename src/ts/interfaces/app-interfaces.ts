@@ -21,10 +21,21 @@ export interface UserInterface {
 export interface AddressInterface {
   type: string;
   street: string;
-  city: string;
-  state: string;
+  locality: string;
+  departmentId: Department;
+  municipalityId: Municipality;
   zipCode: string;
-  location: LocationInterface;
+}
+
+export interface Department {
+  id: number;
+  name: string;
+  municipalities: Municipality[];
+}
+
+export interface Municipality {
+  id: number;
+  name: string;
 }
 
 export interface LocationInterface {
@@ -40,10 +51,40 @@ export interface PhoneInterface {
 
 export interface DpiInterface {
   number: string;
-  dpiFrontUrl: string;
-  dpiBackUrl: string;
+  dpiFront: string;
+  dpiBack: string;
 }
 
 export interface RoleInterface {
   roleName: string;
+}
+
+//API Interfaces (for exporting, receiving data)
+export interface ClientAPI {
+  clientNumber?: number;
+  personId?: number;
+}
+
+export interface PersonAPI {
+  firstNames: string;
+  lastNames: string;
+  birthday?: Date;
+}
+
+export interface AddressAPI {
+  type: string;
+  street: string;
+  locality: string;
+  department: number;
+  municipality: number;
+  zipCode: string;
+}
+
+export interface PhoneAPI {
+  type: string;
+  number: string;
+}
+
+export interface DpiAPI {
+  number: string;
 }
