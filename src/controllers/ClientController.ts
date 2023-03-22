@@ -5,6 +5,10 @@ import {
   PhoneInterface,
   DpiInterface,
   AuthRequest,
+  PersonAPI,
+  AddressAPI,
+  PhoneAPI,
+  DpiAPI,
 } from "../ts/interfaces/app-interfaces";
 import { Transaction } from "sequelize";
 import Dpi from "../models/Dpi";
@@ -13,6 +17,8 @@ import Address from "../models/Address";
 import Client from "../models/Client";
 import Phone from "../models/Phone";
 import { randomInt } from "crypto";
+import Department from "../models/Department";
+import Municipality from "../models/Municipality";
 
 async function generateClientNumber() {
   let clientNumber;
@@ -44,41 +50,56 @@ export const createClient = async (
   response: Response
 ) => {
   const {
-    firstNames,
-    lastNames,
-    birthday,
+    person,
     address,
     dpi,
     phones,
   }: {
-    firstNames: string;
-    lastNames: string;
-    birthday: Date;
-    address: AddressInterface;
-    dpi: DpiInterface;
-    phones: PhoneInterface[];
+    person: PersonAPI;
+    address: AddressAPI;
+    dpi: DpiAPI;
+    phones: PhoneAPI[];
   } = request.body;
 
   const url = `${request.protocol}://${request.get("host")}`;
-  const phoneInstances: PhoneInterface[] = phones.map((phone) => ({
-    type: phone.type,
-    number: phone.number,
-  }));
 
   try {
     sequelize.transaction(async (t: Transaction) => {
+      //Validations for required fields
+      if (!person.firstNames) {
+        return response.status(400).json({
+          message: "Los nombres son requeridos!",
+        });
+      }
+
+      if (!person.lastNames) {
+        return response.status(400).json({
+          message: "Los apellidos son requeridos!",
+        });
+      }
+
+      if (!phones) {
+        return response.status(400).json({
+          message: "Los numeros de teléfono son requeridos!",
+        });
+      }
+
+      const phoneInstances: PhoneInterface[] = phones.map((phone) => ({
+        type: phone.type,
+        number: phone.number,
+      }));
+
       //Creates the person
       const newPerson = await Person.create(
         {
-          firstNames,
-          lastNames,
-          birthday,
+          firstNames: person.firstNames,
+          lastNames: person.lastNames,
+          birthday: person.birthday,
         },
         { transaction: t }
       );
 
       //Create the phones of that person
-
       phoneInstances.forEach((phone) => {
         phone.personId = newPerson.id;
       });
@@ -115,9 +136,12 @@ export const createClient = async (
       }
 
       if (!dpiFrontUrl || !dpiBackUrl) {
-        throw new Error("No hay files!");
+        return response.status(400).json({
+          message: "El dpi frontal y trasero son requeridos!",
+        });
       }
 
+      //Creates the dpi
       const newDpi = await Dpi.create(
         {
           number: dpi.number,
@@ -133,8 +157,13 @@ export const createClient = async (
       //Creates the address
       const newAddress = await Address.create(
         {
-          ...address,
+          type: address.type,
+          street: address.street,
+          locality: address.locality,
+          municipalityId: address.municipality,
+          departmentId: address.department,
           personId: newPerson.id,
+          zipCode: address.zipCode,
         },
         {
           transaction: t,
@@ -151,9 +180,7 @@ export const createClient = async (
       );
 
       response.status(200).json({
-        data: {
-          clientId: newClient.dataValues.id,
-        },
+        id: newClient.dataValues.id,
       });
     });
   } catch (error) {
@@ -192,7 +219,7 @@ export const getAllClients = async (
       response.status(200).json({ data: clients });
     } else {
       response
-        .status(404)
+        .status(204)
         .json({ message: "No se ha encontrado ningun cliente" });
     }
   } catch (error) {
@@ -221,6 +248,16 @@ export const getClientById = async (
             {
               model: Address,
               as: "address",
+              include: [
+                {
+                  model: Department,
+                  as: "department",
+                },
+                {
+                  model: Municipality,
+                  as: "municipality",
+                },
+              ],
             },
             {
               model: Phone,
@@ -329,9 +366,11 @@ export const updateClient = async (
         return;
       }
 
+      addressInstance.type = address.type;
       addressInstance.street = address.street;
-      addressInstance.city = address.city;
-      addressInstance.state = address.state;
+      addressInstance.locality = address.locality;
+      addressInstance.municipalityId = address.municipalityId.id;
+      addressInstance.departmentId = address.departmentId.id;
       addressInstance.zipCode = address.zipCode;
 
       if (!phoneInstances) {
