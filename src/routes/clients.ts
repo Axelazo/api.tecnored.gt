@@ -40,6 +40,10 @@ router.post(
 
 router.put(
   "/update/:id",
+  upload.fields([
+    { name: "dpiFront", maxCount: 1 },
+    { name: "dpiBack", maxCount: 1 },
+  ]),
   Auth.authenticate,
   Auth.checkRoles(allowedRoles),
   ClientController.updateClient
