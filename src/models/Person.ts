@@ -22,10 +22,11 @@ class Person extends Model<
   declare firstNames: string;
   declare lastNames: string; // for nullable fields
   declare birthday: CreationOptional<Date>;
+  declare email: CreationOptional<string>;
+  declare nitNumber: CreationOptional<string>;
+
   // timestamps!
-  // createdAt can be undefined during creation
   declare createdAt: CreationOptional<Date>;
-  // updatedAt can be undefined during creation
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
 
@@ -72,6 +73,20 @@ Person.init(
     birthday: {
       allowNull: true,
       type: DataTypes.DATE,
+    },
+    email: {
+      allowNull: true,
+      type: DataTypes.STRING,
+      unique: true,
+      validate: {
+        isEmail: {
+          msg: "Email must be valid",
+        },
+      },
+    },
+    nitNumber: {
+      allowNull: true,
+      type: DataTypes.STRING,
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
