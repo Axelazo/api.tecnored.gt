@@ -22,6 +22,14 @@ module.exports = {
         allowNull: true,
         type: DataTypes.DATE,
       },
+      email: {
+        allowNull: true,
+        type: DataTypes.STRING,
+      },
+      nitNumber: {
+        allowNull: true,
+        type: DataTypes.STRING,
+      },
       updatedAt: {
         type: DataTypes.DATE,
       },
