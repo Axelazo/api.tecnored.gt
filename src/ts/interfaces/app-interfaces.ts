@@ -69,6 +69,8 @@ export interface PersonAPI {
   firstNames: string;
   lastNames: string;
   birthday?: Date;
+  email?: string;
+  nitNumber?: string;
 }
 
 export interface AddressAPI {
