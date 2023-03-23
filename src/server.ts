@@ -3,6 +3,7 @@ import router from "./routes";
 import dotenv from "dotenv";
 import cors from "cors";
 import morgan from "morgan";
+import removeUnusedDpiImages from "./tasks/removeUnusedDpiImages";
 import { sequelize } from "./models/index";
 import * as path from "path";
 
@@ -24,10 +25,13 @@ app.use("/public", express.static(path.join(__dirname, "/public/")));
 
 app.listen(port, () => {
   console.log(
-    `[server]: ⚡️ AdmonTecnoRed API is running at http://localhost:${port}`
+    `[server]: ⚡️ TecnoRedMS API - API is running at http://localhost:${port}`
   );
 
   sequelize.authenticate().then(() => {
-    console.log(`[server]: ⚡️ Database of AdmonTecnoRed is connected!`);
+    console.log(`[server]: ⚡️ TecnoRedMS API - Database is connected!`);
+    removeUnusedDpiImages();
   });
 });
+
+console.log(`[server]: ⚡️ TecnoRedMS API - Starting tasks...`);
