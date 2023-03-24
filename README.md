@@ -15,12 +15,9 @@ Before you can run the server, you need to have the following software installed
 ### Installation
 
 - Clone this repository to your local machine.
-- Navigate to the project
-  directory in your terminal.
-  Run npm install to install the required
-  dependencies.
-  Create a .env file in the root directory with the
-  following variables:
+- Navigate to the project directory in your terminal.
+- Run `npm install` to install the required dependencies.
+- Create a .env file in the root directory with the following variables:
 
 > DB_HOST=your_database_host
 > DB_PORT=your_database_port
@@ -31,7 +28,7 @@ Before you can run the server, you need to have the following software installed
 
 - Run `npm run db` to migrate the database.
 - Run `npm run seed` to seed the database.
-- Run npm start to start the server.
+- Run `npm start` to start the server.
 
 ### Usage
 
