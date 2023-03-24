@@ -38,13 +38,13 @@ Once the server is running, you can access the API at http://localhost:3000.
 
 This project includes several scripts in the package.json file to help with development and deployment:
 
-`npm run start` - starts the server in production mode.
-`npm run dev` - starts the server in development mode with nodemon.
-`npm run test` - runs the tests (no tests are currently included).
-`npm run build` - builds the project for production.
-`npm run db` - migrates the database and seeds some initial data.
-`npm run migrate` - runs database migrations.
-`npm run seed` - seeds the database with some initial data.
+- `npm run start` - starts the server in production mode.
+- `npm run dev` - starts the server in development mode with nodemon.
+- `npm run test` - runs the tests (no tests are currently included).
+- `npm run build` - builds the project for production.
+- `npm run db` - migrates the database and seeds some initial data.
+- `npm run migrate` - runs database migrations.
+- `npm run seed` - seeds the database with some initial data.
 
 ### Dependencies
 
