@@ -68,7 +68,7 @@ function signUp(request: Request, response: Response) {
       .then((user) => {
         Role.findAll({
           where: {
-            roleName: "admin",
+            roleName: "user",
           },
         }).then((role) => {
           user.setRoles(role);
@@ -88,6 +88,7 @@ function signUp(request: Request, response: Response) {
         });
       })
       .catch((error) => {
+        console.log(error);
         response.status(500).json({ message: "Error!" });
       }),
   ]);
