@@ -20,7 +20,7 @@ export function authenticate(
     jwt.verify(token, authConfig.secret, (error, decoded) => {
       if (error) {
         response.status(500).json({
-          message: "La autenticación falló, falta el token",
+          message: "La autenticación falló, token inválido",
         });
       } else {
         const { user } = decoded as any; // this fucking line took 2 hours
