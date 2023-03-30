@@ -10,6 +10,7 @@ const config: Options = {
   host: process.env.DB_HOST || "localhost",
   dialect: (process.env.DB_DIALECT as Dialect) || "mysql",
   logging: false,
+  timezone: "-06:00",
 };
 
 export default config;
