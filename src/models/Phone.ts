@@ -19,10 +19,9 @@ class Phone extends Model<
   declare type: string;
   declare number: string;
   declare personId: ForeignKey<Person["id"]>;
+
   // timestamps!
-  // createdAt can be undefined during creation
   declare createdAt: CreationOptional<Date>;
-  // updatedAt can be undefined during creation
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
 
@@ -63,7 +62,7 @@ Phone.init(
   },
   {
     tableName: "phones",
-    sequelize, // passing the `sequelize` instance is required
+    sequelize,
   }
 );
 

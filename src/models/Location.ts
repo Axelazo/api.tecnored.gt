@@ -9,8 +9,8 @@ import {
   HasOneSetAssociationMixin,
   HasOneGetAssociationMixin,
 } from "sequelize";
-import Address from "./Address";
 import { sequelize } from "./index";
+import ServicesAddress from "./ServicesAddress";
 
 class Location extends Model<
   InferAttributes<Location>,
@@ -19,20 +19,18 @@ class Location extends Model<
   declare id: CreationOptional<number>;
   declare latitude: string;
   declare longitude: string;
+  declare addressId: ForeignKey<ServicesAddress["id"]>;
 
-  declare addressId: ForeignKey<Address["id"]>;
   // timestamps!
-  // createdAt can be undefined during creation
   declare createdAt: CreationOptional<Date>;
-  // updatedAt can be undefined during creation
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
 
-  declare setAddress: HasOneSetAssociationMixin<Address, number>;
-  declare getAddress: HasOneGetAssociationMixin<Address>;
+  declare setAddress: HasOneSetAssociationMixin<ServicesAddress, number>;
+  declare getAddress: HasOneGetAssociationMixin<ServicesAddress>;
 
   declare static associations: {
-    address: Association<Location, Address>;
+    address: Association<Location, ServicesAddress>;
   };
 }
 
@@ -56,7 +54,7 @@ Location.init(
     addressId: {
       type: DataTypes.INTEGER,
       references: {
-        model: Address,
+        model: ServicesAddress,
         key: "id",
       },
     },
@@ -65,12 +63,15 @@ Location.init(
     deletedAt: DataTypes.DATE,
   },
   {
-    tableName: "locations",
-    sequelize, // passing the `sequelize` instance is required
+    tableName: "serviceslocations",
+    sequelize,
   }
 );
 
-Location.belongsTo(Address, { foreignKey: "addressId", as: "location" });
-Address.hasOne(Location, { foreignKey: "addressId", as: "location" });
+Location.belongsTo(ServicesAddress, {
+  foreignKey: "addressId",
+  as: "location",
+});
+ServicesAddress.hasOne(Location);
 
 export default Location;
