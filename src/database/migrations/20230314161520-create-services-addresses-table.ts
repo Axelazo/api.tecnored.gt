@@ -10,8 +10,36 @@ module.exports = {
         type: DataTypes.INTEGER,
         unique: true,
       },
-      name: {
-        allowNull: false,
+      type: {
+        allowNull: true,
+        type: DataTypes.STRING,
+      },
+      street: {
+        allowNull: true,
+        type: DataTypes.STRING,
+      },
+      locality: {
+        allowNull: true,
+        type: DataTypes.STRING,
+      },
+      departmentId: {
+        allowNull: true,
+        type: DataTypes.INTEGER,
+        references: {
+          model: "departments",
+          key: "id",
+        },
+      },
+      municipalityId: {
+        allowNull: true,
+        type: DataTypes.INTEGER,
+        references: {
+          model: "municipalities",
+          key: "id",
+        },
+      },
+      zipCode: {
+        allowNull: true,
         type: DataTypes.STRING,
       },
       updatedAt: {
