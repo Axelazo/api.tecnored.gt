@@ -38,6 +38,13 @@ router.post(
   ClientController.createClient
 );
 
+router.post(
+  "/report",
+  Auth.authenticate,
+  Auth.checkRoles(allowedRoles),
+  ClientController.getClientsReport
+);
+
 router.put(
   "/update/:id",
   upload.fields([
