@@ -35,3 +35,5 @@ app.listen(port, () => {
 });
 
 console.log(`[server]: ⚡️ TecnoRedMS API - Starting tasks...`);
+
+console.log(`[server]: ⚡️ TecnoRedMS API - Current date is: ${new Date()}`);
