@@ -1,48 +1,23 @@
 import { sequelize } from "../models";
 import { Response } from "express";
 import {
-  AddressInterface,
   PhoneInterface,
-  DpiInterface,
   AuthRequest,
   PersonAPI,
   AddressAPI,
   PhoneAPI,
   DpiAPI,
 } from "../ts/interfaces/app-interfaces";
-import { Transaction } from "sequelize";
+import { Op, Transaction } from "sequelize";
 import Dpi from "../models/Dpi";
 import Person from "../models/Person";
 import Address from "../models/Address";
 import Client from "../models/Client";
 import Phone from "../models/Phone";
-import { randomInt } from "crypto";
 import Department from "../models/Department";
 import Municipality from "../models/Municipality";
-
-async function generateClientNumber() {
-  let clientNumber;
-  let collision = true;
-  while (collision) {
-    // Step 1: Retrieve the current count of clients
-    const clientCount = await Client.count();
-
-    // Step 2: Generate a random 8-digit number
-    const random = randomInt(10000000, 99999999);
-
-    // Step 3: Combine the client count and the random number
-    clientNumber = parseInt(
-      clientCount.toString().padStart(8, "0") + random
-    ).toString();
-
-    // Step 4: Check for collisions
-    const existingClient = await Client.findOne({ where: { clientNumber } });
-    collision = !!existingClient;
-  }
-
-  // Step 5: Return the generated client number
-  return clientNumber ? clientNumber : "";
-}
+import { isAfter, isBefore } from "date-fns";
+import { generateUniqueNumber } from "../utils/generation";
 
 // TODO: Implement validation, delete sensitive fields,
 export const createClient = async (
@@ -84,6 +59,20 @@ export const createClient = async (
         });
       }
 
+      if (!person.nitNumber) {
+        return response.status(400).json({
+          message: "El nit es requerido!",
+          data: request.body,
+        });
+      }
+
+      if (!dpi.number) {
+        return response.status(400).json({
+          message: "El DPI es requerido!",
+          data: request.body,
+        });
+      }
+
       const phoneInstances: PhoneInterface[] = phones.map((phone) => ({
         type: phone.type,
         number: phone.number,
@@ -95,6 +84,8 @@ export const createClient = async (
           firstNames: person.firstNames,
           lastNames: person.lastNames,
           birthday: person.birthday,
+          email: person.email,
+          nitNumber: person.nitNumber,
         },
         { transaction: t }
       );
@@ -171,17 +162,27 @@ export const createClient = async (
       );
 
       //Creates the unique clientNumber
-      const clientNumber = await generateClientNumber();
-
-      //Finaly we create the client when the whole data is complete!
-      const newClient = await Client.create(
-        { personId: newPerson.id, clientNumber },
-        { transaction: t }
+      const clientNumber = await generateUniqueNumber(
+        8,
+        "clientNumber",
+        Client
       );
 
-      response.status(200).json({
-        id: newClient.dataValues.id,
-      });
+      if (clientNumber) {
+        //Finaly we create the client when the whole data is complete!
+        const newClient = await Client.create(
+          { personId: newPerson.id, clientNumber },
+          { transaction: t }
+        );
+
+        response.status(200).json({
+          id: newClient.dataValues.id,
+        });
+      } else {
+        response
+          .status(500)
+          .json({ message: "Hubo un error al generar el cliente" });
+      }
     });
   } catch (error) {
     const message = `La transacción falló: Error ${error}`;
@@ -287,23 +288,24 @@ export const updateClient = async (
   response: Response
 ) => {
   const { id } = request.params;
+  const url = `${request.protocol}://${request.get("host")}`;
 
   const {
-    firstNames,
-    lastNames,
-    birthday,
+    person,
     address,
+    dpi,
     phones,
   }: {
-    firstNames: string;
-    lastNames: string;
-    birthday: Date;
-    dpi: DpiInterface;
-    address: AddressInterface;
-    phones: PhoneInterface[];
+    person: PersonAPI;
+    address: AddressAPI;
+    dpi: DpiAPI;
+    phones: PhoneAPI[];
   } = request.body;
 
-  const phoneInstances: PhoneInterface[] = phones.map((phone) => ({
+  console.log(id);
+  console.log(JSON.stringify(person));
+
+  const phoneInstances: PhoneAPI[] = phones.map((phone) => ({
     type: phone.type,
     number: phone.number,
   }));
@@ -338,27 +340,71 @@ export const updateClient = async (
         return;
       }
 
-      const person = await client.getPerson();
+      const clientPerson = await client.getPerson();
 
-      if (!person) {
+      if (!clientPerson) {
         const message = `No se han encontrado los datos personales del cliente`;
         response.status(500).json({ message });
         return;
       }
 
-      person.firstNames = firstNames;
-      person.lastNames = lastNames;
-      person.birthday = birthday;
+      clientPerson.firstNames = person.firstNames;
+      clientPerson.lastNames = person.lastNames;
 
-      await person.save({ transaction: t, hooks: true });
+      if (person.birthday) {
+        clientPerson.birthday = person.birthday;
+      }
 
-      const addressInstance = await person.getAddress();
+      if (person.email) {
+        clientPerson.email = person.email;
+      }
 
-      // Update the address
-      /*       const addressInstance = await Address.findOne({
-        where: { personId: client.personId },
-        transaction: t,
-      }); */
+      //TODO: Update client
+      //await client.touch({ transaction: t, hooks: true });
+
+      await clientPerson.save({ transaction: t, hooks: true });
+
+      let dpiFrontUrl = null;
+      let dpiBackUrl = null;
+
+      if (request.files) {
+        const filesArray = Array.isArray(request.files)
+          ? request.files
+          : Object.values(request.files);
+
+        for (const file of filesArray) {
+          if (Array.isArray(file)) {
+            for (const f of file) {
+              if (f.fieldname === "dpiFront") {
+                dpiFrontUrl = `${url}/public/${f.filename}`;
+              } else if (f.fieldname === "dpiBack") {
+                dpiBackUrl = `${url}/public/${f.filename}`;
+              }
+            }
+          } else {
+            if (file.fieldname === "dpiFront") {
+              dpiFrontUrl = `${url}/public/${file.filename}`;
+            } else if (file.fieldname === "dpiBack") {
+              dpiBackUrl = `${url}/public/${file.filename}`;
+            }
+          }
+        }
+      }
+
+      if (!dpiFrontUrl || !dpiBackUrl) {
+        return response.status(400).json({
+          message: "El dpi frontal y trasero son requeridos!",
+        });
+      }
+
+      const clientDpi = await clientPerson.getDpi();
+      clientDpi.number = dpi.number;
+      clientDpi.dpiFrontUrl = dpiFrontUrl;
+      clientDpi.dpiBackUrl = dpiBackUrl;
+
+      await clientDpi.save({ transaction: t, hooks: true });
+
+      const addressInstance = await clientPerson.getAddress();
 
       if (!addressInstance) {
         const message = `No se ha encontrado la direccion del cliente`;
@@ -366,12 +412,15 @@ export const updateClient = async (
         return;
       }
 
+      // TODO: Refactor to add department and municipality interfaces
       addressInstance.type = address.type;
       addressInstance.street = address.street;
       addressInstance.locality = address.locality;
-      addressInstance.municipalityId = address.municipalityId.id;
-      addressInstance.departmentId = address.departmentId.id;
+      addressInstance.municipalityId = address.municipality;
+      addressInstance.departmentId = address.department;
       addressInstance.zipCode = address.zipCode;
+
+      await addressInstance.save({ transaction: t, hooks: true });
 
       if (!phoneInstances) {
         const message = `No se ha encontrado los teléfonos del cliente`;
@@ -380,7 +429,7 @@ export const updateClient = async (
       }
       // Update the phones
       const existingPhones = await Phone.findAll({
-        where: { personId: person.id },
+        where: { personId: clientPerson.id },
         transaction: t,
       });
 
@@ -399,7 +448,7 @@ export const updateClient = async (
         const phoneInstance = await Phone.create(
           {
             ...phone,
-            personId: person.id,
+            personId: clientPerson.id,
           },
           { transaction: t }
         );
@@ -488,10 +537,79 @@ export const deleteClient = async (
   }
 };
 
+export const getClientsReport = async (
+  request: AuthRequest,
+  response: Response
+) => {
+  const { startDate, endDate } = request.body;
+
+  // Start and End dates can't be empty
+  if (!startDate || !endDate) {
+    return response.status(400).json({
+      message:
+        "La fecha de inicio y la fecha del final del reporte son requeridas!",
+    });
+  }
+
+  const startDateObj = new Date(startDate);
+  const endDateObj = new Date(endDate);
+
+  // Start date can't be past End date
+  if (isAfter(startDateObj, endDateObj)) {
+    return response.status(400).json({
+      message:
+        "La fecha de inicio no puede ser posterior a la fecha del final del reporte!",
+    });
+  }
+
+  const clients = await Client.findAll({
+    where: {
+      createdAt: {
+        [Op.between]: [startDateObj, endDateObj],
+      },
+    },
+  });
+
+  const newClients = clients.filter((client) => {
+    const createdAt = new Date(client.createdAt);
+    return (
+      createdAt >= new Date(startDateObj) && createdAt <= new Date(endDateObj)
+    );
+  });
+
+  const clientsEntries = newClients.map((client) => ({
+    date: client.createdAt.toISOString().split("T")[0],
+  }));
+
+  interface resultI {
+    date: string;
+    count: number;
+  }
+
+  const uniqueDates = new Set(clientsEntries.map((client) => client.date));
+  const result: resultI[] = [];
+
+  uniqueDates.forEach((date) => {
+    const count = clientsEntries.filter(
+      (client) => client.date === date
+    ).length;
+    result.push({ date, count });
+  });
+
+  const reportData = {
+    startDate: startDateObj.toISOString().split("T")[0],
+    endDate: endDateObj.toISOString().split("T")[0],
+    clients: result,
+  };
+
+  response.json(reportData);
+};
+
 export default {
   createClient,
   getAllClients,
   getClientById,
   updateClient,
   deleteClient,
+  getClientsReport,
 };
