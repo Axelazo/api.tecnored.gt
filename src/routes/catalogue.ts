@@ -2,6 +2,8 @@ import { Router } from "express";
 import DepartmentController from "../controllers/DepartmentController";
 import Auth from "../middleware/auth";
 import { RoleInterface } from "../ts/interfaces/app-interfaces";
+import EstablishmentController from "../controllers/EstablishmentController";
+import BankController from "../controllers/BankController";
 
 const allowedRoles: RoleInterface[] = [
   {
@@ -13,6 +15,7 @@ const allowedRoles: RoleInterface[] = [
 
 const router: Router = Router();
 
+//Departments and Municipalities
 router.get(
   "/departments",
   Auth.authenticate,
@@ -26,5 +29,23 @@ router.get(
   Auth.checkRoles(allowedRoles),
   DepartmentController.getAllMunicipalitiesFromDepartment
 );
+
+//Establishments, Areas and Positions
+router.get("/establishments", EstablishmentController.getAllEstablishments);
+
+router.get(
+  "/establishments/:id/areas",
+  EstablishmentController.getAllAreasFromEstablishment
+);
+
+router.get(
+  "/establishment/area/:id/positions",
+  EstablishmentController.getAllPositionsFromArea
+);
+
+//Banks and Accounts
+router.get("/banks", BankController.getAllBanks);
+
+router.get("/banks/:id/accounts", BankController.getAllAccountsFromBank);
 
 export default router;
