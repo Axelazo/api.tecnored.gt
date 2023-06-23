@@ -4,9 +4,11 @@ import {
   InferCreationAttributes,
   CreationOptional,
   DataTypes,
+  Association,
 } from "sequelize";
 import { sequelize } from "./index";
 import Router from "./Router";
+import Area from "./Area";
 
 class Establishment extends Model<
   InferAttributes<Establishment>,
@@ -15,7 +17,11 @@ class Establishment extends Model<
   declare id: CreationOptional<number>;
   declare name: string;
   declare latitude: string;
+
   declare longitude: string;
+  declare static associations: {
+    positions: Association<Establishment, Area>;
+  };
 
   // timestamps!
   declare createdAt: CreationOptional<Date>;
@@ -58,6 +64,12 @@ Establishment.hasMany(Router, { as: "routers" });
 Router.belongsTo(Establishment, {
   foreignKey: "establishmentId",
   as: "routers",
+});
+
+Establishment.hasMany(Area, { as: "areas" });
+Area.belongsTo(Establishment, {
+  foreignKey: "establishmentId",
+  as: "areas",
 });
 
 export default Establishment;
