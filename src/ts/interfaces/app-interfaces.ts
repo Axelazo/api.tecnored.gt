@@ -73,6 +73,15 @@ export interface PersonAPI {
   nitNumber?: string;
 }
 
+export interface EmployeeAPI extends PersonAPI {
+  bank?: number;
+  accountNumber?: string;
+  establishment: number;
+  area: number;
+  position: number;
+  salary: string;
+}
+
 export interface AddressAPI {
   type: string;
   street: string;
