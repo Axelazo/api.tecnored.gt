@@ -21,10 +21,10 @@ class Address extends Model<
   declare type: string;
   declare street: string;
   declare locality: string;
+  declare zipCode: string;
   declare municipalityId: ForeignKey<Municipality["id"]>;
   declare departmentId: ForeignKey<Department["id"]>;
   declare personId: ForeignKey<Person["id"]>;
-  declare zipCode: string;
 
   // timestamps!
   declare createdAt: CreationOptional<Date>;

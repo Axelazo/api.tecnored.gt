@@ -44,11 +44,11 @@ Location.init(
       unique: true,
     },
     latitude: {
-      allowNull: true,
+      allowNull: false,
       type: DataTypes.STRING,
     },
     longitude: {
-      allowNull: true,
+      allowNull: false,
       type: DataTypes.STRING,
     },
     addressId: {

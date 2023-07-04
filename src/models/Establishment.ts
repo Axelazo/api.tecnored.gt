@@ -17,7 +17,6 @@ class Establishment extends Model<
   declare id: CreationOptional<number>;
   declare name: string;
   declare latitude: string;
-
   declare longitude: string;
   declare static associations: {
     positions: Association<Establishment, Area>;
