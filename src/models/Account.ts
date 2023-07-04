@@ -9,20 +9,23 @@ import {
 } from "sequelize";
 import Bank from "./Bank";
 import { sequelize } from "./index";
+import Employee from "./Employee";
 
 class Account extends Model<
   InferAttributes<Account>,
   InferCreationAttributes<Account>
 > {
   declare id: CreationOptional<number>;
-  declare number: string;
+  declare number: CreationOptional<string>;
   declare bankId: ForeignKey<Bank["id"]>;
+  declare employeeId: ForeignKey<Employee["id"]>;
   // timestamps!
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
 
   declare static associations: {
+    employee: Association<Account, Employee>;
     bank: Association<Account, Bank>;
   };
 }
@@ -50,6 +53,15 @@ Account.init(
         key: "id",
       },
     },
+    employeeId: {
+      allowNull: false,
+      type: DataTypes.INTEGER,
+      references: {
+        model: Employee,
+        key: "id",
+      },
+    },
+
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
     deletedAt: DataTypes.DATE,
@@ -59,5 +71,15 @@ Account.init(
     sequelize, // passing the `sequelize` instance is required
   }
 );
+
+Bank.hasMany(Account, { as: "accounts" });
+Account.belongsTo(Bank, {
+  foreignKey: "bankId",
+  as: "accounts",
+});
+Account.belongsTo(Employee, {
+  foreignKey: "employeeId",
+  as: "employeeAccounts",
+});
 
 export default Account;
