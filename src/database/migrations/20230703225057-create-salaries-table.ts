@@ -2,7 +2,7 @@ import { QueryInterface, DataTypes } from "sequelize";
 
 module.exports = {
   up: (queryInterface: QueryInterface): Promise<void> =>
-    queryInterface.createTable("employees", {
+    queryInterface.createTable("salaries", {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -10,33 +10,25 @@ module.exports = {
         type: DataTypes.INTEGER,
         unique: true,
       },
-      employeeNumber: {
+      amount: {
         allowNull: false,
-        type: DataTypes.STRING,
+        type: DataTypes.FLOAT, // Adjust the data type according to your needs (e.g., FLOAT, DECIMAL, etc.).
       },
-      personId: {
-        allowNull: true,
+      employeeId: {
+        allowNull: false,
         type: DataTypes.INTEGER,
         references: {
-          model: "persons",
+          model: "employees",
           key: "id",
         },
       },
-      positionId: {
-        allowNull: true,
-        type: DataTypes.INTEGER,
-        references: {
-          model: "positions",
-          key: "id",
-        },
+      start: {
+        allowNull: false,
+        type: DataTypes.DATE,
       },
-      accountId: {
+      end: {
         allowNull: true,
-        type: DataTypes.INTEGER,
-        references: {
-          model: "accounts",
-          key: "id",
-        },
+        type: DataTypes.DATE,
       },
       updatedAt: {
         type: DataTypes.DATE,
@@ -44,11 +36,8 @@ module.exports = {
       createdAt: {
         type: DataTypes.DATE,
       },
-      deletedAt: {
-        type: DataTypes.DATE,
-      },
     }),
 
   down: (queryInterface: QueryInterface): Promise<void> =>
-    queryInterface.dropTable("employees"),
+    queryInterface.dropTable("salaries"),
 };
