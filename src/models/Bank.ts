@@ -8,6 +8,7 @@ import {
 } from "sequelize";
 import { sequelize } from "./index";
 import Account from "./Account";
+import Employee from "./Employee";
 
 class Bank extends Model<InferAttributes<Bank>, InferCreationAttributes<Bank>> {
   declare id: CreationOptional<number>;
@@ -45,11 +46,5 @@ Bank.init(
     sequelize, // passing the `sequelize` instance is required
   }
 );
-
-Bank.hasMany(Account, { as: "accounts" });
-Account.belongsTo(Bank, {
-  foreignKey: "bankId",
-  as: "accounts",
-});
 
 export default Bank;
