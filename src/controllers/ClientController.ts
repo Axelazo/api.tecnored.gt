@@ -16,7 +16,7 @@ import Client from "../models/Client";
 import Phone from "../models/Phone";
 import Department from "../models/Department";
 import Municipality from "../models/Municipality";
-import { isAfter, isBefore } from "date-fns";
+import { isAfter } from "date-fns";
 import { generateUniqueNumber } from "../utils/generation";
 
 // TODO: Implement validation, delete sensitive fields,
@@ -56,13 +56,6 @@ export const createClient = async (
       if (!phones) {
         return response.status(400).json({
           message: "Los numeros de teléfono son requeridos!",
-        });
-      }
-
-      if (!person.nitNumber) {
-        return response.status(400).json({
-          message: "El nit es requerido!",
-          data: request.body,
         });
       }
 
@@ -471,7 +464,9 @@ export const updateClient = async (
         await phoneInstance.save({ transaction: t, hooks: true });
       }
 
-      response.status(200).json({ client });
+      response
+        .status(200)
+        .json({ client, message: "Cliente actualizado exitosamente!" });
     });
   } catch (error) {
     const message = `La transacción falló`;

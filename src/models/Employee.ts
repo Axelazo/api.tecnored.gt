@@ -11,6 +11,7 @@ import {
 } from "sequelize";
 import { sequelize } from "./index";
 import Person from "./Person";
+import Position from "./Position";
 
 class Employee extends Model<
   InferAttributes<Employee>,
@@ -18,7 +19,10 @@ class Employee extends Model<
 > {
   declare id: CreationOptional<number>;
   declare employeeNumber: string;
+  declare profileUrl: string;
   declare personId: ForeignKey<Person["id"]>;
+  declare positionId: ForeignKey<Position["id"]>;
+
   // timestamps!
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
@@ -45,10 +49,21 @@ Employee.init(
       allowNull: false,
       type: DataTypes.STRING,
     },
+    profileUrl: {
+      allowNull: false,
+      type: DataTypes.STRING,
+    },
     personId: {
       type: DataTypes.INTEGER,
       references: {
         model: Person,
+        key: "id",
+      },
+    },
+    positionId: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: Position,
         key: "id",
       },
     },
@@ -64,5 +79,7 @@ Employee.init(
 
 Employee.belongsTo(Person, { foreignKey: "personId", as: "person" });
 Person.hasOne(Employee, { foreignKey: "personId", as: "employee" });
+Employee.belongsTo(Position, { foreignKey: "positionId", as: "position" });
+Position.hasMany(Employee, { foreignKey: "positionId", as: "employees" });
 
 export default Employee;

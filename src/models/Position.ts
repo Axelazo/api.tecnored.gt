@@ -9,6 +9,7 @@ import {
 } from "sequelize";
 import Area from "./Department";
 import { sequelize } from "./index";
+import Employee from "./Employee";
 
 class Position extends Model<
   InferAttributes<Position>,

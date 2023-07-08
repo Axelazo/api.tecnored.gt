@@ -21,6 +21,7 @@ function signIn(request: Request, response: Response) {
     },
   })
     .then((user) => {
+      console.log(user?.email);
       if (!user) {
         response.status(400).json({ message: "Usuario no encontrado" });
       } else {

@@ -65,10 +65,10 @@ Router.belongsTo(Establishment, {
   as: "routers",
 });
 
-Establishment.hasMany(Area, { as: "areas" });
+Establishment.hasMany(Area, { foreignKey: "establishmentId", as: "areas" });
 Area.belongsTo(Establishment, {
   foreignKey: "establishmentId",
-  as: "areas",
+  as: "establishment",
 });
 
 export default Establishment;

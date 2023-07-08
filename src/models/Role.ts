@@ -10,7 +10,6 @@ import User from "./User";
 
 import { sequelize } from "./index";
 
-// 'projects' is excluded as it's not an attribute, it's an association.
 export class Role extends Model<
   InferAttributes<Role>,
   InferCreationAttributes<Role>

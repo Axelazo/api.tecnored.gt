@@ -57,10 +57,10 @@ Area.init(
   }
 );
 
-Area.hasMany(Position, { as: "positions" });
+Area.hasMany(Position, { foreignKey: "areaId", as: "positions" });
 Position.belongsTo(Area, {
   foreignKey: "areaId",
-  as: "positions",
+  as: "area",
 });
 
 export default Area;
