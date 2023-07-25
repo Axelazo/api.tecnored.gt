@@ -8,6 +8,7 @@ import {
 } from "sequelize";
 import Establishment from "./Establishment";
 import { sequelize } from "./index";
+import Plan from "./Plan";
 import ServicesAddress from "./ServicesAddress";
 import Status from "./Status";
 
@@ -19,6 +20,8 @@ class Service extends Model<
   declare name: string;
   declare serviceNumber: string;
   declare ipAddress: string;
+  declare planId: ForeignKey<Plan["id"]>;
+
   declare addressId: ForeignKey<ServicesAddress["id"]>;
   declare statusId: ForeignKey<Status["id"]>;
   declare establishmentId: ForeignKey<Establishment["id"]>;
@@ -49,6 +52,14 @@ Service.init(
     ipAddress: {
       allowNull: true,
       type: DataTypes.STRING,
+    },
+    planId: {
+      allowNull: false,
+      type: DataTypes.INTEGER,
+      references: {
+        model: Plan,
+        key: "id",
+      },
     },
     addressId: {
       allowNull: false,
@@ -91,8 +102,6 @@ ServicesAddress.belongsTo(Service, {
   as: "address",
 });
 
-//CHECK STATUS
-
 Service.belongsTo(Establishment, {
   foreignKey: "establishmentId",
 });
@@ -100,5 +109,11 @@ Establishment.hasMany(Service, {
   foreignKey: "establishmentId",
   as: "services",
 });
+
+Service.belongsTo(Plan, { foreignKey: "planId", as: "plan" });
+Plan.hasMany(Service, { foreignKey: "planId", as: "services" });
+
+Status.hasMany(Service, { foreignKey: "statusId", as: "services" });
+Service.hasOne(Status);
 
 export default Service;

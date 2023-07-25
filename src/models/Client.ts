@@ -11,6 +11,8 @@ import {
 } from "sequelize";
 import { sequelize } from "./index";
 import Person from "./Person";
+import Service from "./Service";
+import ServicesOwners from "./ServicesOwners";
 
 class Client extends Model<
   InferAttributes<Client>,
@@ -62,7 +64,15 @@ Client.init(
   }
 );
 
+//Relationships with Person
 Client.belongsTo(Person, { foreignKey: "personId", as: "person" });
 Person.hasOne(Client, { foreignKey: "personId", as: "client" });
+
+//Relationships with Services
+Client.hasMany(ServicesOwners, { foreignKey: "clientId", as: "ownedServices" });
+Service.hasMany(ServicesOwners, { foreignKey: "serviceId", as: "owners" });
+
+ServicesOwners.belongsTo(Service, { foreignKey: "serviceId", as: "service" });
+ServicesOwners.belongsTo(Client, { foreignKey: "clientId", as: "client" });
 
 export default Client;
