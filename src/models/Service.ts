@@ -17,11 +17,9 @@ class Service extends Model<
   InferCreationAttributes<Service>
 > {
   declare id: CreationOptional<number>;
-  declare name: string;
   declare serviceNumber: string;
   declare ipAddress: string;
   declare planId: ForeignKey<Plan["id"]>;
-
   declare addressId: ForeignKey<ServicesAddress["id"]>;
   declare statusId: ForeignKey<Status["id"]>;
   declare establishmentId: ForeignKey<Establishment["id"]>;
@@ -40,10 +38,6 @@ Service.init(
       primaryKey: true,
       type: DataTypes.INTEGER,
       unique: true,
-    },
-    name: {
-      allowNull: false,
-      type: DataTypes.STRING,
     },
     serviceNumber: {
       allowNull: true,
