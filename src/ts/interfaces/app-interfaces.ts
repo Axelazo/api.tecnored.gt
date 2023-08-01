@@ -91,6 +91,12 @@ export interface AddressAPI {
   zipCode: string;
 }
 
+export interface LocationAPI {
+  latitude: string;
+  longitude: string;
+  addressId: number;
+}
+
 export interface PhoneAPI {
   type: string;
   number: string;

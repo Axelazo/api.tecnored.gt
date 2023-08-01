@@ -2,37 +2,48 @@ import { QueryInterface, DataTypes } from "sequelize";
 
 module.exports = {
   up: (queryInterface: QueryInterface): Promise<void> =>
-    queryInterface.createTable("services", {
+    queryInterface.createTable("servicePlanMappings", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: DataTypes.INTEGER,
-        unique: true,
       },
-      serviceNumber: {
+      serviceId: {
         allowNull: true,
-        type: DataTypes.STRING,
-      },
-      ipAddress: {
-        allowNull: true,
-        type: DataTypes.STRING,
-      },
-      addressId: {
-        allowNull: false,
         type: DataTypes.INTEGER,
         references: {
-          model: "servicesaddresses",
+          model: "services",
           key: "id",
         },
       },
-      establishmentId: {
-        allowNull: false,
+      planPriceId: {
+        allowNull: true,
         type: DataTypes.INTEGER,
         references: {
-          model: "establishments",
+          model: "planPrices",
           key: "id",
         },
+      },
+      planNameId: {
+        allowNull: true,
+        type: DataTypes.INTEGER,
+        references: {
+          model: "planNames",
+          key: "id",
+        },
+      },
+      planSpeedId: {
+        allowNull: true,
+        type: DataTypes.INTEGER,
+        references: {
+          model: "planSpeeds",
+          key: "id",
+        },
+      },
+      start: {
+        allowNull: false,
+        type: DataTypes.DATE,
       },
       updatedAt: {
         type: DataTypes.DATE,
@@ -46,5 +57,5 @@ module.exports = {
     }),
 
   down: (queryInterface: QueryInterface): Promise<void> =>
-    queryInterface.dropTable("services"),
+    queryInterface.dropTable("servicePlanMappings"),
 };

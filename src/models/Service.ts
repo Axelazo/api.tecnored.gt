@@ -11,6 +11,7 @@ import { sequelize } from "./index";
 import Plan from "./Plan";
 import ServicesAddress from "./ServicesAddress";
 import Status from "./Status";
+import ServicePlan from "./ServicePlan";
 
 class Service extends Model<
   InferAttributes<Service>,
@@ -104,10 +105,7 @@ Establishment.hasMany(Service, {
   as: "services",
 });
 
-Service.belongsTo(Plan, { foreignKey: "planId", as: "plan" });
-Plan.hasMany(Service, { foreignKey: "planId", as: "services" });
-
-Status.hasMany(Service, { foreignKey: "statusId", as: "services" });
-Service.hasOne(Status);
+Service.hasMany(ServicePlan, { foreignKey: "serviceId" });
+ServicePlan.belongsTo(Service, { foreignKey: "serviceId" });
 
 export default Service;

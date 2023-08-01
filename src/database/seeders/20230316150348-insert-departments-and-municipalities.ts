@@ -453,7 +453,7 @@ const guatemala: department[] = [
   },
 ];
 
-module.exports = {
+/* module.exports = {
   up: (queryInterface: QueryInterface): Promise<number | object> => {
     const promises: number | object[] = [];
     guatemala.forEach((department, index) => {
@@ -485,5 +485,53 @@ module.exports = {
       queryInterface.bulkDelete("municipalities", {}, {}),
       queryInterface.bulkDelete("departments", {}, {}),
     ]);
+  },
+}; */
+
+module.exports = {
+  up: async (queryInterface: QueryInterface): Promise<number | object> => {
+    try {
+      const departmentPromises = guatemala.map((department, index) => {
+        return queryInterface.bulkInsert("departments", [
+          {
+            id: index + 1,
+            name: department.title,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ]);
+      });
+
+      await Promise.all(departmentPromises);
+
+      const municipalityPromises: Promise<number | object>[] = [];
+      guatemala.forEach((department, index) => {
+        const munPromises = department.municipalities.map((municipality) => {
+          return queryInterface.bulkInsert("municipalities", [
+            {
+              departmentId: index + 1,
+              name: municipality.title,
+            },
+          ]);
+        });
+        municipalityPromises.push(...munPromises);
+      });
+
+      await Promise.all(municipalityPromises);
+
+      return {}; // Return an empty object to indicate success
+    } catch (error) {
+      return Promise.reject(error); // Return a rejected Promise if there's an error
+    }
+  },
+
+  down: async (queryInterface: QueryInterface): Promise<number | object> => {
+    try {
+      await queryInterface.bulkDelete("municipalities", {}, {});
+      await queryInterface.bulkDelete("departments", {}, {});
+      return {}; // Return an empty object to indicate success
+    } catch (error) {
+      return Promise.reject(error);
+    }
   },
 };
