@@ -18,11 +18,27 @@ module.exports = {
         allowNull: true,
         type: DataTypes.STRING,
       },
+      planId: {
+        allowNull: false,
+        type: DataTypes.INTEGER,
+        references: {
+          model: "plans",
+          key: "id",
+        },
+      },
       addressId: {
         allowNull: false,
         type: DataTypes.INTEGER,
         references: {
           model: "servicesaddresses",
+          key: "id",
+        },
+      },
+      statusId: {
+        allowNull: false,
+        type: DataTypes.INTEGER,
+        references: {
+          model: "statuses",
           key: "id",
         },
       },

@@ -10,6 +10,18 @@ module.exports = {
         type: DataTypes.INTEGER,
         unique: true,
       },
+      name: {
+        allowNull: false,
+        type: DataTypes.STRING,
+      },
+      speed: {
+        allowNull: false,
+        type: DataTypes.INTEGER,
+      },
+      realSpeed: {
+        allowNull: false,
+        type: DataTypes.FLOAT,
+      },
       updatedAt: {
         type: DataTypes.DATE,
       },

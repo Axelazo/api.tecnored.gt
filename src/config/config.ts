@@ -11,12 +11,6 @@ const config: Options = {
   dialect: (process.env.DB_DIALECT as Dialect) || "mysql",
   logging: false,
   timezone: "-06:00",
-  pool: {
-    max: 20,
-    min: 0,
-    acquire: 60000,
-    idle: 10000,
-  },
 };
 
 export default config;
