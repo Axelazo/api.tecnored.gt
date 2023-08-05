@@ -30,9 +30,9 @@ export const getAllPlans = async (request: AuthRequest, response: Response) => {
 
         return {
           id,
-          name: mostRecentName,
-          price: mostRecentPrice,
-          speed: mostRecentSpeed,
+          name: mostRecentName.dataValues.name,
+          price: mostRecentPrice.dataValues.price,
+          speed: mostRecentSpeed.dataValues.speed,
         };
       })
     );
