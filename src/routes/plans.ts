@@ -14,5 +14,6 @@ router.get("/", PlanController.getAllPlans);
 router.get("/:id", PlanController.getPlanById);
 router.post("/create", PlanController.createPlan);
 router.put("/update/:id", PlanController.updatePlan);
+router.delete("/delete/:id", PlanController.deletePlan);
 
 export default router;
