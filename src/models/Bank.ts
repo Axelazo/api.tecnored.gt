@@ -5,10 +5,10 @@ import {
   InferCreationAttributes,
   CreationOptional,
   DataTypes,
+  NonAttribute,
 } from "sequelize";
 import { sequelize } from "./index";
 import Account from "./Account";
-import Employee from "./Employee";
 
 class Bank extends Model<InferAttributes<Bank>, InferCreationAttributes<Bank>> {
   declare id: CreationOptional<number>;
@@ -18,6 +18,7 @@ class Bank extends Model<InferAttributes<Bank>, InferCreationAttributes<Bank>> {
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
 
+  declare accounts?: NonAttribute<Account[]>;
   declare static associations: {
     accounts: Association<Bank, Account>;
   };
