@@ -39,4 +39,23 @@ router.post(
   EmployeeController.createEmployee
 );
 
+router.put(
+  "/update/:id",
+  upload.fields([
+    { name: "dpiFront", maxCount: 1 },
+    { name: "dpiBack", maxCount: 1 },
+    { name: "profilePicture", maxCount: 1 },
+  ]),
+  Auth.authenticate,
+  Auth.checkRoles(allowedRoles),
+  EmployeeController.updateEmployee
+);
+
+router.delete(
+  "/delete/:id",
+  Auth.authenticate,
+  Auth.checkRoles(allowedRoles),
+  EmployeeController.deleteEmployee
+);
+
 export default router;
