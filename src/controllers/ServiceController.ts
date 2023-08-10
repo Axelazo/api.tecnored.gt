@@ -13,6 +13,7 @@ import ServicesOwners from "../models/ServicesOwners";
 import ServicesAddress from "../models/ServicesAddress";
 import ServicePlanMapping from "../models/ServicePlanMapping";
 import { generateUniqueNumber } from "../utils/generation";
+import Location from "../models/Location";
 
 export const createServiceForClient = async (
   request: AuthRequest,
@@ -101,7 +102,16 @@ export const createServiceForClient = async (
         }
       );
 
-      //Create the new Service
+      const newLocation = await Location.create(
+        {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          addressId: newServiceAddress.dataValues.id,
+        },
+        { transaction: t }
+      );
+
+      //Create the entry in the Service table to associate the plan
       const newService = await Service.create(
         {
           serviceNumber: serviceNumber,
@@ -145,3 +155,9 @@ export const createServiceForClient = async (
     });
   }
 };
+
+/* 
+export const getAllServicesWithinCoordinates = async() => {
+  return "void"
+}
+ */
