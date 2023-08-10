@@ -44,8 +44,10 @@ router.get(
 );
 
 //Banks and Accounts
+router.get("/banks/create", BankController.createBank);
 router.get("/banks", BankController.getAllBanks);
-
+router.put("/banks/update/:id", BankController.updateBank);
+router.delete("/banks/delete/:id", BankController.deleteBank);
 router.get("/banks/:id/accounts", BankController.getAllAccountsFromBank);
 
 export default router;
