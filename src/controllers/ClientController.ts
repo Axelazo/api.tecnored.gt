@@ -42,27 +42,26 @@ export const createClient = async (
     sequelize.transaction(async (t: Transaction) => {
       //Validations for required fields
       if (!person.firstNames) {
-        return response.status(400).json({
+        return response.status(422).json({
           message: "Los nombres son requeridos!",
         });
       }
 
       if (!person.lastNames) {
-        return response.status(400).json({
+        return response.status(422).json({
           message: "Los apellidos son requeridos!",
         });
       }
 
       if (!phones) {
-        return response.status(400).json({
+        return response.status(422).json({
           message: "Los numeros de teléfono son requeridos!",
         });
       }
 
       if (!dpi.number) {
-        return response.status(400).json({
+        return response.status(422).json({
           message: "El DPI es requerido!",
-          data: request.body,
         });
       }
 
@@ -70,6 +69,30 @@ export const createClient = async (
         type: phone.type,
         number: phone.number,
       }));
+
+      const existingDpi = await Dpi.findOne({
+        where: {
+          number: dpi.number,
+        },
+      });
+
+      if (existingDpi) {
+        return response.status(409).json({
+          message: "El DPI ya está en uso!",
+        });
+      }
+
+      const existingNit = await Person.findOne({
+        where: {
+          nitNumber: person.nitNumber,
+        },
+      });
+
+      if (existingNit) {
+        return response.status(409).json({
+          message: "El NIT ya está en uso!",
+        });
+      }
 
       //Creates the person
       const newPerson = await Person.create(
@@ -217,7 +240,6 @@ export const getAllClients = async (
         .json({ message: "No se ha encontrado ningun cliente" });
     }
   } catch (error) {
-    console.log(error);
     response.status(500).json(error);
   }
 };
@@ -295,9 +317,6 @@ export const updateClient = async (
     phones: PhoneAPI[];
   } = request.body;
 
-  console.log(id);
-  console.log(JSON.stringify(person));
-
   const phoneInstances: PhoneAPI[] = phones.map((phone) => ({
     type: phone.type,
     number: phone.number,
@@ -331,6 +350,39 @@ export const updateClient = async (
         const message = `No se ha encontrado el cliente`;
         response.status(404).json({ message });
         return;
+      }
+
+      const person = await client.getPerson();
+
+      const existingDpi = await Dpi.findOne({
+        where: {
+          number: dpi.number,
+          id: {
+            [Op.ne]: person.id,
+          },
+        },
+      });
+
+      if (existingDpi) {
+        console.log(existingDpi);
+        return response.status(409).json({
+          message: "El DPI ya está en uso!",
+        });
+      }
+
+      const existingNit = await Person.findOne({
+        where: {
+          nitNumber: person.nitNumber,
+          id: {
+            [Op.ne]: person.id,
+          },
+        },
+      });
+
+      if (existingNit) {
+        return response.status(409).json({
+          message: "El NIT ya está en uso!",
+        });
       }
 
       const clientPerson = await client.getPerson();
@@ -526,7 +578,6 @@ export const deleteClient = async (
       response.status(200).json({ message: "Cliente eliminado exitosamente" });
     });
   } catch (error) {
-    console.log(error);
     const message = `La transacción falló`;
     response.status(500).json({ message });
   }
