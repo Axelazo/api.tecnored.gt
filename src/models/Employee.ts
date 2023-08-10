@@ -8,6 +8,7 @@ import {
   ForeignKey,
   HasOneSetAssociationMixin,
   HasOneGetAssociationMixin,
+  NonAttribute,
 } from "sequelize";
 import { sequelize } from "./index";
 import Person from "./Person";
@@ -27,6 +28,8 @@ class Employee extends Model<
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
+
+  declare person?: NonAttribute<Person>;
 
   declare setPerson: HasOneSetAssociationMixin<Person, number>;
   declare getPerson: HasOneGetAssociationMixin<Person>;
