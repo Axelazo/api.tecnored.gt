@@ -80,6 +80,8 @@ export interface EmployeeAPI extends PersonAPI {
   area: number;
   position: number;
   salary: string;
+  birthday: Date;
+  email: string;
 }
 
 export interface AddressAPI {
