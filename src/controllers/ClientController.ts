@@ -357,7 +357,7 @@ export const updateClient = async (
       const existingDpi = await Dpi.findOne({
         where: {
           number: dpi.number,
-          id: {
+          personId: {
             [Op.ne]: person.id,
           },
         },
