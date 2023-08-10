@@ -46,32 +46,32 @@ export const createEmployee = async (
     sequelize.transaction(async (t: Transaction) => {
       //Validations for required fields
       if (!employee.firstNames) {
-        return response.status(400).json({
+        return response.status(422).json({
           message: "Los nombres son requeridos!",
         });
       }
 
       if (!employee.lastNames) {
-        return response.status(400).json({
+        return response.status(422).json({
           message: "Los apellidos son requeridos!",
         });
       }
 
       if (!phones) {
-        return response.status(400).json({
+        return response.status(422).json({
           message: "Los numeros de teléfono son requeridos!",
         });
       }
 
       if (!employee.nitNumber) {
-        return response.status(400).json({
+        return response.status(422).json({
           message: "El nit es requerido!",
           data: request.body,
         });
       }
 
       if (!dpi.number) {
-        return response.status(400).json({
+        return response.status(422).json({
           message: "El DPI es requerido!",
           data: request.body,
         });
@@ -81,27 +81,6 @@ export const createEmployee = async (
         type: phone.type,
         number: phone.number,
       }));
-
-      //Creates the person
-      const newPerson = await Person.create(
-        {
-          firstNames: employee.firstNames,
-          lastNames: employee.lastNames,
-          birthday: employee.birthday,
-          email: employee.email,
-          nitNumber: employee.nitNumber,
-        },
-        { transaction: t }
-      );
-
-      //Create the phones of that person
-      phoneInstances.forEach((phone) => {
-        phone.personId = newPerson.id;
-      });
-
-      const newPhones = await Phone.bulkCreate(phoneInstances, {
-        transaction: t,
-      });
 
       let dpiFrontUrl = null;
       let dpiBackUrl = null;
@@ -133,17 +112,64 @@ export const createEmployee = async (
         }
       }
 
+      // Check if DPI is unique
+      const existingDpi = await Dpi.findOne({
+        where: {
+          number: dpi.number,
+        },
+      });
+
+      if (existingDpi) {
+        return response.status(409).json({
+          message: "El DPI ya está en uso!",
+        });
+      }
+
+      // Check if NIT is unique
+      const existingNit = await Person.findOne({
+        where: {
+          nitNumber: employee.nitNumber,
+        },
+      });
+
+      if (existingNit) {
+        return response.status(409).json({
+          message: "El NIT ya está en uso!",
+        });
+      }
+
       if (!dpiFrontUrl || !dpiBackUrl) {
-        return response.status(400).json({
+        return response.status(422).json({
           message: "El dpi frontal y trasero son requeridos!",
         });
       }
 
       if (!profilePicture) {
-        return response.status(400).json({
+        return response.status(422).json({
           message: "La foto de perfil es requerida!",
         });
       }
+
+      //Creates the person
+      const newPerson = await Person.create(
+        {
+          firstNames: employee.firstNames,
+          lastNames: employee.lastNames,
+          birthday: employee.birthday,
+          email: employee.email,
+          nitNumber: employee.nitNumber,
+        },
+        { transaction: t }
+      );
+
+      //Create the phones of that person
+      phoneInstances.forEach((phone) => {
+        phone.personId = newPerson.id;
+      });
+
+      const newPhones = await Phone.bulkCreate(phoneInstances, {
+        transaction: t,
+      });
 
       //Creates the dpi
       const newDpi = await Dpi.create(
@@ -335,8 +361,343 @@ export const getEmployeeById = async (
   }
 };
 
+export const updateEmployee = async (
+  request: AuthRequest,
+  response: Response
+) => {
+  const {
+    employee,
+    address,
+    dpi,
+    phones,
+  }: {
+    employee: EmployeeAPI;
+    address: AddressAPI;
+    dpi: DpiAPI;
+    phones: PhoneAPI[];
+  } = request.body;
+  const { id } = request.params;
+
+  const url = `${request.protocol}://${request.get("host")}`;
+
+  try {
+    sequelize.transaction(async (t: Transaction) => {
+      const existingEmployee = await Employee.findByPk(id, {
+        include: [
+          {
+            model: Person,
+            as: "person",
+          },
+        ],
+      });
+
+      if (!existingEmployee) {
+        return response.status(404).json({
+          message: "El empleado indicado no existe!",
+        });
+      }
+
+      //Validations for required fields
+      if (!employee.firstNames) {
+        return response.status(422).json({
+          message: "Los nombres son requeridos!",
+        });
+      }
+
+      if (!employee.lastNames) {
+        return response.status(422).json({
+          message: "Los apellidos son requeridos!",
+        });
+      }
+
+      if (!phones) {
+        return response.status(422).json({
+          message: "Los numeros de teléfono son requeridos!",
+        });
+      }
+
+      if (!employee.nitNumber) {
+        return response.status(422).json({
+          message: "El nit es requerido!",
+          data: request.body,
+        });
+      }
+
+      if (!dpi.number) {
+        return response.status(422).json({
+          message: "El DPI es requerido!",
+          data: request.body,
+        });
+      }
+
+      const phoneInstances: PhoneInterface[] = phones.map((phone) => ({
+        type: phone.type,
+        number: phone.number,
+      }));
+
+      let dpiFrontUrl = null;
+      let dpiBackUrl = null;
+      let profilePicture = null;
+
+      if (request.files) {
+        const filesArray = Array.isArray(request.files)
+          ? request.files
+          : Object.values(request.files);
+
+        for (const file of filesArray) {
+          if (Array.isArray(file)) {
+            for (const f of file) {
+              if (f.fieldname === "dpiFront") {
+                dpiFrontUrl = `${url}/public/${f.filename}`;
+              } else if (f.fieldname === "dpiBack") {
+                dpiBackUrl = `${url}/public/${f.filename}`;
+              } else if (f.fieldname === "profilePicture") {
+                profilePicture = `${url}/public/${f.filename}`;
+              }
+            }
+          } else {
+            if (file.fieldname === "dpiFront") {
+              dpiFrontUrl = `${url}/public/${file.filename}`;
+            } else if (file.fieldname === "dpiBack") {
+              dpiBackUrl = `${url}/public/${file.filename}`;
+            }
+          }
+        }
+      }
+
+      if (!dpiFrontUrl || !dpiBackUrl) {
+        return response.status(422).json({
+          message: "El dpi frontal y trasero son requeridos!",
+        });
+      }
+
+      if (!profilePicture) {
+        return response.status(422).json({
+          message: "La foto de perfil es requerida!",
+        });
+      }
+
+      const person = await existingEmployee.getPerson();
+
+      // Check if DPI is unique
+      const existingDpi = await Dpi.findOne({
+        where: {
+          number: dpi.number,
+          personId: {
+            [Op.ne]: person.id,
+          },
+        },
+      });
+
+      if (!existingDpi) {
+        return response.status(404).json({
+          message: "No se ha encontrado el DPI!",
+        });
+      }
+
+      existingDpi.dpiBackUrl = dpiBackUrl;
+      existingDpi.dpiFrontUrl = dpiFrontUrl;
+
+      await existingDpi.save({ transaction: t, hooks: true });
+
+      if (existingDpi) {
+        return response.status(409).json({
+          message: "El DPI ya está en uso!",
+        });
+      }
+
+      // Check if NIT is unique
+      const existingNit = await Person.findOne({
+        where: {
+          nitNumber: employee.nitNumber,
+          id: {
+            [Op.ne]: person.id,
+          },
+        },
+      });
+
+      if (existingNit) {
+        return response.status(409).json({
+          message: "El NIT ya está en uso!",
+        });
+      }
+
+      //Updates the Person
+      const existingPerson = await Person.findOne({
+        where: {
+          id: existingEmployee.personId,
+        },
+      });
+
+      if (!existingPerson) {
+        return response.status(404).json({
+          message: "No se ha encontrado la persona!",
+        });
+      }
+
+      existingPerson.firstNames = employee.firstNames;
+      existingPerson.lastNames = employee.lastNames;
+      existingPerson.birthday = employee.birthday;
+      existingPerson.email = employee.email;
+      existingPerson.nitNumber = employee.nitNumber;
+
+      await existingPerson.save({ transaction: t, hooks: true });
+
+      // Update the Phones
+      const existingPhones = await Phone.findAll({
+        where: { personId: existingEmployee.personId },
+        transaction: t,
+      });
+
+      const existingPhoneNumbers = existingPhones.map((phone) => phone.number);
+
+      // Find phones to add and update
+      const phonesToAdd = phoneInstances.filter(
+        (phone) => !existingPhoneNumbers.includes(phone.number)
+      );
+      const phonesToUpdate = phoneInstances.filter((phone) =>
+        existingPhoneNumbers.includes(phone.number)
+      );
+
+      // Add new phones
+      for (const phone of phonesToAdd) {
+        const phoneInstance = await Phone.create(
+          {
+            ...phone,
+            personId: existingEmployee.personId,
+          },
+          { transaction: t }
+        );
+
+        existingPhones.push(phoneInstance);
+      }
+
+      // Update existing phones
+      for (const phone of phonesToUpdate) {
+        const phoneInstance = existingPhones.find(
+          (p) => p.number === phone.number
+        );
+
+        if (!phoneInstance) {
+          continue;
+        }
+
+        phoneInstance.type = phone.type;
+
+        await phoneInstance.save({ transaction: t, hooks: true });
+      }
+
+      // Update Address
+      const existingAddress = await Address.findOne({
+        where: {
+          personId: existingEmployee.id,
+        },
+      });
+
+      if (!existingAddress) {
+        const message = `No se ha encontrado la direccion del cliente`;
+        response.status(404).json({ message });
+        return;
+      }
+
+      existingAddress.type = address.type;
+      existingAddress.street = address.street;
+      existingAddress.locality = address.locality;
+      existingAddress.municipalityId = address.municipality;
+      existingAddress.departmentId = address.department;
+      existingAddress.zipCode = address.zipCode;
+
+      await existingAddress.save({ transaction: t, hooks: true });
+
+      // Update Employee
+      existingEmployee.profileUrl = profilePicture;
+
+      await existingEmployee.save({ transaction: t, hooks: true });
+
+      response.status(200).json({
+        id: existingEmployee.id,
+        message: "Cliente actualizado exitosamente!",
+      });
+    });
+  } catch (error) {
+    const message = `La transacción falló: Error ${error}`;
+    response.status(500).json({
+      message,
+    });
+  }
+};
+
+export const deleteEmployee = async (
+  request: AuthRequest,
+  response: Response
+) => {
+  try {
+    const { id } = request.params;
+
+    sequelize.transaction(async (t: Transaction) => {
+      const existingEmployee = await Employee.findByPk(id);
+
+      if (!existingEmployee) {
+        return response.status(404).json({
+          message: "El empleado indicado no existe!",
+        });
+      }
+
+      // Delete Phones
+      await Phone.destroy({
+        where: { personId: existingEmployee.personId },
+        transaction: t,
+      });
+
+      // Delete Address
+      await Address.destroy({
+        where: { personId: existingEmployee.personId },
+        transaction: t,
+      });
+
+      // Delete DPI
+      await Dpi.destroy({
+        where: { personId: existingEmployee.personId },
+        transaction: t,
+      });
+
+      // Delete Salary
+      await Salary.destroy({
+        where: { employeeId: existingEmployee.id },
+        transaction: t,
+      });
+
+      // Delete Account
+      await Account.destroy({
+        where: { employeeId: existingEmployee.id },
+        transaction: t,
+      });
+
+      // Delete Employee
+      await existingEmployee.destroy({ transaction: t });
+
+      // Delete Person
+      await Person.destroy({
+        where: { id: existingEmployee.personId },
+        transaction: t,
+      });
+
+      response.status(200).json({
+        message: "Empleado eliminado exitosamente!",
+      });
+    });
+  } catch (error) {
+    const message = `La transacción falló: Error ${error}`;
+    response.status(500).json({
+      message,
+    });
+  }
+};
+
 export default {
+  createEmployee,
   getAllEmployees,
   getEmployeeById,
-  createEmployee,
+  updateEmployee,
+  deleteEmployee,
 };
