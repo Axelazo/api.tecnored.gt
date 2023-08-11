@@ -22,6 +22,7 @@ import Account from "../models/Account";
 import Establishment from "../models/Establishment";
 import Position from "../models/Position";
 import Area from "../models/Area";
+import Bank from "../models/Bank";
 
 // TODO: Implement validation, delete sensitive fields,
 export const createEmployee = async (
@@ -345,6 +346,16 @@ export const getEmployeeById = async (
           model: Salary,
           as: "salaries",
         },
+        {
+          model: Account,
+          as: "account",
+          include: [
+            {
+              model: Bank,
+              as: "bank",
+            },
+          ],
+        },
       ],
     });
 
@@ -479,7 +490,6 @@ export const updateEmployee = async (
 
       const person = await existingEmployee.getPerson();
 
-      // Check if DPI is unique
       const existingDpi = await Dpi.findOne({
         where: {
           number: dpi.number,
@@ -489,18 +499,8 @@ export const updateEmployee = async (
         },
       });
 
-      if (!existingDpi) {
-        return response.status(404).json({
-          message: "No se ha encontrado el DPI!",
-        });
-      }
-
-      existingDpi.dpiBackUrl = dpiBackUrl;
-      existingDpi.dpiFrontUrl = dpiFrontUrl;
-
-      await existingDpi.save({ transaction: t, hooks: true });
-
       if (existingDpi) {
+        console.log(existingDpi);
         return response.status(409).json({
           message: "El DPI ya está en uso!",
         });
@@ -534,6 +534,11 @@ export const updateEmployee = async (
           message: "No se ha encontrado la persona!",
         });
       }
+
+      const clientDpi = await existingPerson.getDpi();
+      clientDpi.number = dpi.number;
+      clientDpi.dpiFrontUrl = dpiFrontUrl;
+      clientDpi.dpiBackUrl = dpiBackUrl;
 
       existingPerson.firstNames = employee.firstNames;
       existingPerson.lastNames = employee.lastNames;
