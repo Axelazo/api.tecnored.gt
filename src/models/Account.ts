@@ -6,6 +6,7 @@ import {
   CreationOptional,
   DataTypes,
   ForeignKey,
+  NonAttribute,
 } from "sequelize";
 import Bank from "./Bank";
 import { sequelize } from "./index";
@@ -23,6 +24,8 @@ class Account extends Model<
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
+
+  declare bank?: NonAttribute<Bank>;
 
   declare static associations: {
     employee: Association<Account, Employee>;
@@ -71,11 +74,11 @@ Account.init(
     sequelize, // passing the `sequelize` instance is required
   }
 );
-
+Employee.hasOne(Account, { foreignKey: "employeeId", as: "account" });
 Bank.hasMany(Account, { as: "accounts" });
 Account.belongsTo(Bank, {
   foreignKey: "bankId",
-  as: "accounts",
+  as: "bank",
 });
 Account.belongsTo(Employee, {
   foreignKey: "employeeId",
