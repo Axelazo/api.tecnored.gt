@@ -2,6 +2,7 @@ import express, { Router } from "express";
 import dashboard from "./dashboard";
 import clientRoutes from "./clients";
 import plans from "./plans";
+import ticketRoutes from "./ticket";
 import employeRoutes from "./employees";
 import catalogue from "./catalogue";
 import authRoutes from "./auth";
@@ -13,6 +14,7 @@ router.use("/dashboard", dashboard);
 router.use("/clients", clientRoutes);
 router.use("/employees", employeRoutes);
 router.use("/plans", plans);
+router.use("/tickets", ticketRoutes);
 router.use(authRoutes);
 
 //catalogue routes
