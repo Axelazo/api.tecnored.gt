@@ -13,6 +13,7 @@ import {
 import { sequelize } from "./index";
 import Person from "./Person";
 import Position from "./Position";
+import Account from "./Account";
 
 class Employee extends Model<
   InferAttributes<Employee>,
@@ -30,6 +31,7 @@ class Employee extends Model<
   declare deletedAt: CreationOptional<Date>;
 
   declare person?: NonAttribute<Person>;
+  declare account?: NonAttribute<Account>;
 
   declare setPerson: HasOneSetAssociationMixin<Person, number>;
   declare getPerson: HasOneGetAssociationMixin<Person>;
