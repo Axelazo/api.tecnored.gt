@@ -42,6 +42,14 @@ module.exports = {
         allowNull: true,
         type: DataTypes.STRING,
       },
+      serviceId: {
+        allowNull: true,
+        type: DataTypes.INTEGER,
+        references: {
+          model: "services",
+          key: "id",
+        },
+      },
       updatedAt: {
         type: DataTypes.DATE,
       },
