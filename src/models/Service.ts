@@ -5,13 +5,13 @@ import {
   CreationOptional,
   DataTypes,
   ForeignKey,
+  NonAttribute,
 } from "sequelize";
-import Establishment from "./Establishment";
 import { sequelize } from "./index";
-import Plan from "./Plan";
+import Router from "./Router";
 import ServicesAddress from "./ServicesAddress";
-import Status from "./Status";
-import ServicePlan from "./ServicePlan";
+import ServicePlanMapping from "./ServicePlanMapping";
+import ServiceStatus from "./ServiceStatus";
 
 class Service extends Model<
   InferAttributes<Service>,
@@ -20,11 +20,11 @@ class Service extends Model<
   declare id: CreationOptional<number>;
   declare serviceNumber: string;
   declare ipAddress: string;
-  declare planId: ForeignKey<Plan["id"]>;
-  declare addressId: ForeignKey<ServicesAddress["id"]>;
-  declare statusId: ForeignKey<Status["id"]>;
-  declare establishmentId: ForeignKey<Establishment["id"]>;
+  declare routerId: ForeignKey<Router["id"]>;
 
+  declare address?: NonAttribute<ServicesAddress>;
+  declare servicePlanMappings?: NonAttribute<ServicePlanMapping[]>;
+  declare serviceStatuses: NonAttribute<ServiceStatus[]>;
   // timestamps!
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
@@ -48,35 +48,11 @@ Service.init(
       allowNull: true,
       type: DataTypes.STRING,
     },
-    planId: {
+    routerId: {
       allowNull: false,
       type: DataTypes.INTEGER,
       references: {
-        model: Plan,
-        key: "id",
-      },
-    },
-    addressId: {
-      allowNull: false,
-      type: DataTypes.INTEGER,
-      references: {
-        model: ServicesAddress,
-        key: "id",
-      },
-    },
-    statusId: {
-      allowNull: false,
-      type: DataTypes.INTEGER,
-      references: {
-        model: Status,
-        key: "id",
-      },
-    },
-    establishmentId: {
-      allowNull: false,
-      type: DataTypes.INTEGER,
-      references: {
-        model: Establishment,
+        model: Router,
         key: "id",
       },
     },
@@ -90,22 +66,5 @@ Service.init(
     sequelize,
   }
 );
-
-Service.hasOne(ServicesAddress);
-ServicesAddress.belongsTo(Service, {
-  foreignKey: "addressId",
-  as: "address",
-});
-
-Service.belongsTo(Establishment, {
-  foreignKey: "establishmentId",
-});
-Establishment.hasMany(Service, {
-  foreignKey: "establishmentId",
-  as: "services",
-});
-
-Service.hasMany(ServicePlan, { foreignKey: "serviceId" });
-ServicePlan.belongsTo(Service, { foreignKey: "serviceId" });
 
 export default Service;

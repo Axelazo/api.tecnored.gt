@@ -59,16 +59,4 @@ Establishment.init(
   }
 );
 
-Establishment.hasMany(Router, { as: "routers" });
-Router.belongsTo(Establishment, {
-  foreignKey: "establishmentId",
-  as: "routers",
-});
-
-Establishment.hasMany(Area, { foreignKey: "establishmentId", as: "areas" });
-Area.belongsTo(Establishment, {
-  foreignKey: "establishmentId",
-  as: "establishment",
-});
-
 export default Establishment;

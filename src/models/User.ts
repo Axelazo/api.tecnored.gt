@@ -126,17 +126,4 @@ User.init(
   }
 );
 
-// Here we associate which actually populates out pre-declared `association` static and other methods.
-User.belongsToMany(Role, {
-  through: "usersRoles",
-  as: "roles",
-  foreignKey: "userId",
-});
-
-Role.belongsToMany(User, {
-  through: "usersRoles",
-  as: "users",
-  foreignKey: "roleId",
-});
-
 export default User;

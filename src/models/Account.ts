@@ -74,15 +74,5 @@ Account.init(
     sequelize, // passing the `sequelize` instance is required
   }
 );
-Employee.hasOne(Account, { foreignKey: "employeeId", as: "account" });
-Bank.hasMany(Account, { as: "accounts" });
-Account.belongsTo(Bank, {
-  foreignKey: "bankId",
-  as: "bank",
-});
-Account.belongsTo(Employee, {
-  foreignKey: "employeeId",
-  as: "employeeAccounts",
-});
 
 export default Account;

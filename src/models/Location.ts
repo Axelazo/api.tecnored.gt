@@ -68,10 +68,4 @@ Location.init(
   }
 );
 
-Location.belongsTo(ServicesAddress, {
-  foreignKey: "addressId",
-  as: "location",
-});
-ServicesAddress.hasOne(Location);
-
 export default Location;

@@ -90,12 +90,4 @@ Address.init(
   }
 );
 
-Address.belongsTo(Person, { foreignKey: "personId", as: "address" });
-Person.hasOne(Address, { foreignKey: "personId", as: "address" });
-Address.belongsTo(Department, { foreignKey: "departmentId", as: "department" });
-Address.belongsTo(Municipality, {
-  foreignKey: "municipalityId",
-  as: "municipality",
-});
-
 export default Address;

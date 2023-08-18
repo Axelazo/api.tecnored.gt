@@ -1,5 +1,4 @@
 import {
-  Association,
   Model,
   InferAttributes,
   InferCreationAttributes,
@@ -8,24 +7,24 @@ import {
   ForeignKey,
 } from "sequelize";
 import { sequelize } from "./index";
-import Position from "./Position";
-import Establishment from "./Establishment";
+import Service from "./Service";
+import Status from "./Status";
 
-class Area extends Model<InferAttributes<Area>, InferCreationAttributes<Area>> {
+class ServiceStatus extends Model<
+  InferAttributes<ServiceStatus>,
+  InferCreationAttributes<ServiceStatus>
+> {
   declare id: CreationOptional<number>;
-  declare name: string;
-  declare establishmentId: ForeignKey<Establishment["id"]>;
+  declare serviceId: ForeignKey<Service["id"]>;
+  declare statusId: ForeignKey<Status["id"]>;
+  declare start: Date;
   // timestamps!
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
-
-  declare static associations: {
-    positions: Association<Area, Position>;
-  };
 }
 
-Area.init(
+ServiceStatus.init(
   {
     id: {
       allowNull: false,
@@ -34,27 +33,31 @@ Area.init(
       type: DataTypes.INTEGER,
       unique: true,
     },
-    name: {
-      allowNull: false,
-      type: DataTypes.STRING,
-    },
-    establishmentId: {
+    serviceId: {
       allowNull: false,
       type: DataTypes.INTEGER,
       references: {
-        model: Establishment,
+        model: Service,
         key: "id",
       },
     },
-
+    statusId: {
+      allowNull: false,
+      type: DataTypes.INTEGER,
+      references: {
+        model: Status,
+        key: "id",
+      },
+    },
+    start: DataTypes.DATE,
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
     deletedAt: DataTypes.DATE,
   },
   {
-    tableName: "areas",
-    sequelize, // passing the `sequelize` instance is required
+    tableName: "servicestatuses",
+    sequelize,
   }
 );
 
-export default Area;
+export default ServiceStatus;
