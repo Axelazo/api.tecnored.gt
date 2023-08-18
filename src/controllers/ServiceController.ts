@@ -1,19 +1,37 @@
 import { Response } from "express";
-import {
-  AddressAPI,
-  AuthRequest,
-  LocationAPI,
-} from "../ts/interfaces/app-interfaces";
+import { AuthRequest, LocationAPI } from "../ts/interfaces/app-interfaces";
 import { sequelize } from "../models";
 import { Transaction } from "sequelize";
-import Client from "../models/Client";
+/* import Client from "../models/Client";
 import Service from "../models/Service";
 import Plan from "../models/Plan";
 import ServicesOwners from "../models/ServicesOwners";
 import ServicesAddress from "../models/ServicesAddress";
 import ServicePlanMapping from "../models/ServicePlanMapping";
-import { generateUniqueNumber } from "../utils/generation";
 import Location from "../models/Location";
+import PlanName from "../models/PlanName";
+import PlanPrice from "../models/PlanPrice";
+import PlanSpeed from "../models/PlanSpeed";
+import Router from "../models/Router";
+import ServiceStatus from "../models/ServiceStatus";
+import Status from "../models/Status"; */
+import {
+  Client,
+  Service,
+  Plan,
+  ServicesOwners,
+  ServicesAddress,
+  ServicePlanMapping,
+  Location,
+  PlanName,
+  PlanPrice,
+  PlanSpeed,
+  Router,
+  ServiceStatus,
+  Status,
+} from "../models/Relationships";
+import { generateUniqueNumber } from "../utils/generation";
+import { isValidIPv4, isIPinRange } from "../utils/ip";
 
 export const createServiceForClient = async (
   request: AuthRequest,
@@ -23,20 +41,93 @@ export const createServiceForClient = async (
     clientId,
     ipAddress,
     planId,
-    address,
     location,
+    start,
+    routerId,
+    employeeId,
   }: {
     clientId: number;
     ipAddress: string;
     planId: number;
-    address: AddressAPI;
     location: LocationAPI;
+    start?: Date;
+    routerId: number;
+    employeeId: number;
   } = request.body;
 
   try {
+    // TODO - Tasks: Create entry on the comissions table for the given employeeId
+    // TODO = Tasks: Create Service from given date
+    // TODO - QOL -> Bring from the backend the smallest unused IP address
+
     let serviceNumber: string | null = null; // Declare serviceNumber outside the if block
 
     sequelize.transaction(async (t: Transaction) => {
+      // Check if the client exists
+      const client = await Client.findByPk(clientId, { transaction: t });
+
+      if (!client) {
+        return response.status(404).json({
+          message: "No se ha encontrado el cliente!",
+        });
+      }
+
+      // Check if the router exists
+      const router = await Router.findByPk(routerId, { transaction: t });
+
+      if (!router) {
+        return response.status(404).json({
+          message: "No se ha encontrado el router!",
+        });
+      }
+
+      // Check if the address is provided
+      if (!ipAddress) {
+        const message = `La dirección IP es requerida!`;
+        response.status(422).json({ message });
+        return;
+      }
+
+      // Check if the IP is a valid IPV4 and it's between range
+      if (!isValidIPv4(ipAddress)) {
+        const message = `La dirección IP no es válida!`;
+        response.status(422).json({ message });
+        return;
+      }
+
+      if (!isIPinRange(ipAddress, router.ipAddress)) {
+        const message = `La dirección IP no está dentro del rango!`;
+        response.status(422).json({ message });
+        return;
+      }
+
+      // Check if the given IP doesn't already exists on the database
+      const service = await Service.findOne({
+        where: { ipAddress },
+      });
+
+      // Check if the address is provided
+      if (service) {
+        const message = `La dirección IP ya está en uso!`;
+        response.status(409).json({ message });
+        return;
+      }
+
+      // Check if the plan exists
+      const plan = await Plan.findByPk(planId, {
+        include: [
+          { model: PlanName, as: "names" },
+          { model: PlanPrice, as: "prices" },
+          { model: PlanSpeed, as: "speeds" },
+        ],
+        transaction: t,
+      });
+      if (!plan) {
+        return response.status(404).json({
+          message: "No se ha encontrado el plan!",
+        });
+      }
+
       // Check if location exists
       if (!location) {
         const message = `La ubicacion es requerida!`;
@@ -50,33 +141,27 @@ export const createServiceForClient = async (
         return;
       }
 
-      // Check if the client exists
-      const client = await Client.findByPk(clientId, { transaction: t });
-      if (!client) {
-        return response.status(404).json({
-          message: "No se ha encontrado el cliente!",
-        });
+      let mostRecentNameId;
+      let mostRecentPriceId;
+      let mostRecentSpeedId;
+
+      if (plan.names && plan.prices && plan.speeds) {
+        const names = plan.names;
+        const prices = plan.prices;
+        const speeds = plan.speeds;
+
+        names.sort((a, b) => a.start.getTime() - b.start.getTime());
+        prices.sort((a, b) => a.start.getTime() - b.start.getTime());
+        speeds.sort((a, b) => a.start.getTime() - b.start.getTime());
+
+        mostRecentNameId = names[0].id;
+        mostRecentPriceId = prices[0].id;
+        mostRecentSpeedId = speeds[0].id;
+      } else {
+        const message = `No se ha encontrado la información relacionada al plan!`;
+        response.status(500).json({ message });
+        return;
       }
-
-      // Check if the plan exists
-      const plan = await Plan.findByPk(planId, { transaction: t });
-      if (!plan) {
-        return response.status(404).json({
-          message: "No se ha encontrado el plan!",
-        });
-      }
-
-      const names = await plan.getNames();
-      const prices = await plan.getPrices();
-      const speeds = await plan.getSpeeds();
-
-      names.sort((a, b) => a.start.getTime() - b.start.getTime());
-      prices.sort((a, b) => a.start.getTime() - b.start.getTime());
-      speeds.sort((a, b) => a.start.getTime() - b.start.getTime());
-
-      const mostRecentNameId = names[0].id;
-      const mostRecentPriceId = prices[0].id;
-      const mostRecentSpeedId = speeds[0].id;
 
       //Creates the unique clientNumber
       serviceNumber = await generateUniqueNumber(8, "serviceNumber", Service);
@@ -88,36 +173,58 @@ export const createServiceForClient = async (
         return;
       }
 
+      // Get Address data from Client -> Person
+      const person = await client.getPerson();
+
+      if (!person) {
+        response.status(500).json({
+          message: "Hubo un error al obtener la información del cliente",
+        });
+        return;
+      }
+
+      const address = await person.getAddress();
+
+      if (!address) {
+        response.status(500).json({
+          message:
+            "Hubo un error al obtener la información de dirección cliente",
+        });
+        return;
+      }
+
+      // Create the entry in the Service table to associate the plan
+      const newService = await Service.create(
+        {
+          serviceNumber: serviceNumber,
+          ipAddress: ipAddress,
+          routerId: router.id,
+        },
+        { transaction: t }
+      );
+
+      // Create the entry in the Services Addresses table to associate to the Plan
       const newServiceAddress = await ServicesAddress.create(
         {
           type: address.type,
           street: address.street,
           locality: address.locality,
-          municipalityId: address.municipality,
-          departmentId: address.department,
+          municipalityId: address.municipalityId,
+          departmentId: address.departmentId,
           zipCode: address.zipCode,
+          serviceId: newService.id,
         },
         {
           transaction: t,
         }
       );
 
+      // Create the entry in the Locations table to associate to the Plan
       const newLocation = await Location.create(
         {
           latitude: location.latitude,
           longitude: location.longitude,
-          addressId: newServiceAddress.dataValues.id,
-        },
-        { transaction: t }
-      );
-
-      //Create the entry in the Service table to associate the plan
-      const newService = await Service.create(
-        {
-          serviceNumber: serviceNumber,
-          ipAddress: ipAddress,
-          addressId: newServiceAddress.dataValues.id,
-          planId: planId,
+          addressId: newServiceAddress.id,
         },
         { transaction: t }
       );
@@ -126,7 +233,7 @@ export const createServiceForClient = async (
       const newServiceOwner = await ServicesOwners.create(
         {
           clientId: clientId,
-          serviceId: newService.dataValues.id,
+          serviceId: newService.id,
           start: new Date(),
         },
         { transaction: t }
@@ -156,8 +263,83 @@ export const createServiceForClient = async (
   }
 };
 
-/* 
-export const getAllServicesWithinCoordinates = async() => {
-  return "void"
-}
- */
+export const getAllServicesOfClient = async (
+  request: AuthRequest,
+  response: Response
+) => {
+  const { clientId = 1 } = request.params;
+
+  try {
+    const services = await ServicesOwners.findAll({
+      include: [
+        {
+          model: Service,
+          as: "service",
+          include: [
+            { model: ServicesAddress, as: "address" },
+            {
+              model: ServicePlanMapping,
+              as: "servicePlanMappings",
+              include: [
+                {
+                  model: PlanName,
+                  as: "planName",
+                },
+                {
+                  model: PlanPrice,
+                  as: "planPrice",
+                },
+                {
+                  model: PlanSpeed,
+                  as: "planSpeed",
+                },
+              ],
+
+              order: [["createdAt", "ASC"]],
+              limit: 1,
+            },
+            {
+              model: ServiceStatus,
+              include: [{ model: Status }],
+            },
+          ],
+        },
+      ],
+      order: [["createdAt", "ASC"]],
+      where: {
+        clientId,
+      },
+    });
+
+    const formattedServices = services.map((serviceOwner) => {
+      const service = serviceOwner.service;
+      const servicePlanMappings = service?.servicePlanMappings || [];
+      const serviceStatuses = service?.serviceStatuses || [];
+
+      return {
+        serviceNumber: service?.serviceNumber || "",
+        ipAddress: service?.ipAddress || "",
+        planName: servicePlanMappings[0]?.planName?.name || "",
+        planSpeed: servicePlanMappings[0]?.planSpeed?.speed || "",
+        planPrice: servicePlanMappings[0]?.planPrice?.price || "",
+        status: serviceStatuses[0] || "",
+      };
+    });
+
+    const servicesAmount = formattedServices.length;
+
+    if (servicesAmount > 0) {
+      response.status(200).json({ data: formattedServices });
+    } else {
+      response.status(204).json({ message: "No se ha encontrado ningun plan" });
+    }
+  } catch (error) {
+    console.log(error);
+    response.status(500).json(error);
+  }
+};
+
+export default {
+  createServiceForClient,
+  getAllServicesOfClient,
+};
