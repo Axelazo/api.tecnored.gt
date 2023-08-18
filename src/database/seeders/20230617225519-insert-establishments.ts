@@ -25,6 +25,13 @@ module.exports = {
           createdAt: new Date(),
           updatedAt: new Date(),
         },
+        {
+          name: "San Francisco",
+          latitude: "16.7972",
+          longitude: "89.9323",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
       ]),
     ]);
   },
