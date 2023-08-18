@@ -18,19 +18,11 @@ module.exports = {
         allowNull: true,
         type: DataTypes.STRING,
       },
-      addressId: {
+      routerId: {
         allowNull: false,
         type: DataTypes.INTEGER,
         references: {
-          model: "servicesaddresses",
-          key: "id",
-        },
-      },
-      establishmentId: {
-        allowNull: false,
-        type: DataTypes.INTEGER,
-        references: {
-          model: "establishments",
+          model: "routers",
           key: "id",
         },
       },
