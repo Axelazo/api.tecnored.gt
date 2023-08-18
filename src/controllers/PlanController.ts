@@ -8,7 +8,6 @@ import PlanName from "../models/PlanName";
 import PlanSpeed from "../models/PlanSpeed";
 import { calculateRealValue } from "../utils/misc";
 
-// TODO: Create API interface for Plan
 export const getAllPlans = async (request: AuthRequest, response: Response) => {
   try {
     const plans = await Plan.findAll();
@@ -42,7 +41,9 @@ export const getAllPlans = async (request: AuthRequest, response: Response) => {
     if (plansAmount > 0) {
       response.status(200).json({ data: formatedPlans });
     } else {
-      response.status(204).json({ message: "No se ha encontrado ningun plan" });
+      response
+        .status(204)
+        .json({ message: "No se ha encontrado ningun plan!" });
     }
   } catch (error) {
     console.log(error);
