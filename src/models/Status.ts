@@ -33,7 +33,6 @@ Status.init(
       allowNull: false,
       type: DataTypes.STRING,
     },
-
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
     deletedAt: DataTypes.DATE,

@@ -6,6 +6,7 @@ import {
   DataTypes,
   Association,
   HasManyGetAssociationsMixin,
+  NonAttribute,
 } from "sequelize";
 import { sequelize } from "./index";
 import PlanPrice from "./PlanPrice";
@@ -23,6 +24,10 @@ class Plan extends Model<InferAttributes<Plan>, InferCreationAttributes<Plan>> {
   declare getNames: HasManyGetAssociationsMixin<PlanName>;
   declare getPrices: HasManyGetAssociationsMixin<PlanPrice>;
   declare getSpeeds: HasManyGetAssociationsMixin<PlanSpeed>;
+
+  declare names?: NonAttribute<PlanName[]>;
+  declare prices?: NonAttribute<PlanPrice[]>;
+  declare speeds?: NonAttribute<PlanSpeed[]>;
 
   declare static associations: {
     names: Association<Plan, PlanName>;
@@ -49,15 +54,5 @@ Plan.init(
     sequelize,
   }
 );
-
-Plan.hasMany(PlanPrice, { foreignKey: "planId", as: "prices" });
-Plan.hasMany(PlanName, { foreignKey: "planId", as: "names" });
-Plan.hasMany(PlanSpeed, { foreignKey: "planId", as: "speeds" });
-PlanPrice.belongsTo(Plan, { foreignKey: "planId", as: "planPrice" });
-PlanName.belongsTo(Plan, { foreignKey: "planId", as: "planName" });
-PlanSpeed.belongsTo(Plan, { foreignKey: "planId", as: "planSpeed" });
-
-Plan.hasMany(ServicePlan, { foreignKey: "planId" });
-ServicePlan.belongsTo(Plan, { foreignKey: "planId" });
 
 export default Plan;

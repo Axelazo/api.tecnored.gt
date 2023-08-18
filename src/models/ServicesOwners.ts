@@ -5,6 +5,7 @@ import {
   CreationOptional,
   DataTypes,
   ForeignKey,
+  NonAttribute,
 } from "sequelize";
 import { sequelize } from "./index";
 import Client from "./Client";
@@ -19,6 +20,8 @@ class ServicesOwners extends Model<
   declare serviceId: ForeignKey<Service["id"]>;
   declare start: Date;
   declare end: CreationOptional<Date>;
+
+  declare service?: NonAttribute<Service>;
 
   // timestamps!
   declare createdAt: CreationOptional<Date>;

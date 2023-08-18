@@ -9,6 +9,7 @@ import {
 import { sequelize } from "./index";
 import Department from "./Department";
 import Municipality from "./Municipality";
+import Service from "./Service";
 
 class ServicesAddress extends Model<
   InferAttributes<ServicesAddress>,
@@ -21,6 +22,8 @@ class ServicesAddress extends Model<
   declare municipalityId: ForeignKey<Municipality["id"]>;
   declare departmentId: ForeignKey<Department["id"]>;
   declare zipCode: string;
+  declare serviceId: ForeignKey<Service["id"]>;
+
   // timestamps!
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
@@ -47,6 +50,14 @@ ServicesAddress.init(
     locality: {
       allowNull: false,
       type: DataTypes.STRING,
+    },
+    serviceId: {
+      allowNull: false,
+      type: DataTypes.INTEGER,
+      references: {
+        model: ServicesAddress,
+        key: "id",
+      },
     },
     municipalityId: {
       allowNull: false,
@@ -77,14 +88,5 @@ ServicesAddress.init(
     sequelize,
   }
 );
-
-ServicesAddress.belongsTo(Department, {
-  foreignKey: "departmentId",
-  as: "department",
-});
-ServicesAddress.belongsTo(Municipality, {
-  foreignKey: "municipalityId",
-  as: "municipality",
-});
 
 export default ServicesAddress;

@@ -5,6 +5,7 @@ import {
   CreationOptional,
   DataTypes,
   ForeignKey,
+  NonAttribute,
 } from "sequelize";
 import { sequelize } from "./index";
 import Service from "./Service";
@@ -22,6 +23,11 @@ class ServicePlanMapping extends Model<
   declare planNameId: ForeignKey<PlanName["id"]>;
   declare planSpeedId: ForeignKey<PlanSpeed["id"]>;
   declare start: Date;
+
+  declare planName?: NonAttribute<PlanName>;
+  declare planPrice?: NonAttribute<PlanPrice>;
+  declare planSpeed?: NonAttribute<PlanSpeed>;
+
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
@@ -77,7 +83,7 @@ ServicePlanMapping.init(
     deletedAt: DataTypes.DATE,
   },
   {
-    tableName: "servicePlanMapping",
+    tableName: "servicePlanMappings",
     sequelize,
   }
 );

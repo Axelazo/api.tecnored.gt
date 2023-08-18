@@ -7,6 +7,7 @@ import {
   DataTypes,
   HasOneGetAssociationMixin,
   HasManyGetAssociationsMixin,
+  NonAttribute,
 } from "sequelize";
 import { sequelize } from "./index";
 import Dpi from "./Dpi";
@@ -29,6 +30,8 @@ class Person extends Model<
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
+
+  declare address?: NonAttribute<Address>;
 
   declare getAddress: HasOneGetAssociationMixin<Address>;
   declare getPhones: HasManyGetAssociationsMixin<Phone>;
@@ -97,8 +100,5 @@ Person.init(
     sequelize, // passing the `sequelize` instance is required
   }
 );
-
-Person.hasOne(Dpi, { foreignKey: "personId", as: "dpi" });
-Dpi.belongsTo(Person, { foreignKey: "personId", as: "dpi" });
 
 export default Person;
