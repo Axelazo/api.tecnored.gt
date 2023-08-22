@@ -18,5 +18,11 @@ router.get(
   Auth.checkRoles(allowedRoles), */
   ServiceController.getAllServicesOfClient
 );
+router.get(
+  "/area",
+  /*   Auth.authenticate,
+  Auth.checkRoles(allowedRoles), */
+  ServiceController.getAllServicesInGeographicArea
+);
 
 export default router;
