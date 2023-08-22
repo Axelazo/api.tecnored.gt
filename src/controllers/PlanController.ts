@@ -1,55 +1,14 @@
 import { Response } from "express";
 import { AuthRequest } from "../ts/interfaces/app-interfaces";
 import { sequelize } from "../models";
-import { Transaction } from "sequelize";
+import { Transaction, Op, Sequelize } from "sequelize";
 import Plan from "../models/Plan";
 import PlanPrice from "../models/PlanPrice";
 import PlanName from "../models/PlanName";
 import PlanSpeed from "../models/PlanSpeed";
 import { calculateRealValue } from "../utils/misc";
-
-export const getAllPlans = async (request: AuthRequest, response: Response) => {
-  try {
-    const plans = await Plan.findAll();
-
-    const formatedPlans = await Promise.all(
-      plans.map(async (plan) => {
-        const id = plan.dataValues.id;
-        const names = await plan.getNames();
-        const prices = await plan.getPrices();
-        const speeds = await plan.getSpeeds();
-
-        names.sort((a, b) => b.start.getTime() - a.start.getTime());
-        prices.sort((a, b) => b.start.getTime() - a.start.getTime());
-        speeds.sort((a, b) => b.start.getTime() - a.start.getTime());
-
-        const mostRecentName = names[0];
-        const mostRecentPrice = prices[0];
-        const mostRecentSpeed = speeds[0];
-
-        return {
-          id,
-          name: mostRecentName.dataValues.name,
-          price: mostRecentPrice.dataValues.price,
-          speed: mostRecentSpeed.dataValues.speed,
-        };
-      })
-    );
-
-    const plansAmount = formatedPlans.length;
-
-    if (plansAmount > 0) {
-      response.status(200).json({ data: formatedPlans });
-    } else {
-      response
-        .status(204)
-        .json({ message: "No se ha encontrado ningun plan!" });
-    }
-  } catch (error) {
-    console.log(error);
-    response.status(500).json(error);
-  }
-};
+import Router from "../models/Router";
+import ServicePlan from "../models/ServicePlan";
 
 export const createPlan = async (request: AuthRequest, response: Response) => {
   const {
@@ -131,6 +90,96 @@ export const createPlan = async (request: AuthRequest, response: Response) => {
         id: newPlan.dataValues.id,
       });
     });
+  } catch (error) {
+    const message = `La transacción falló: Error ${error}`;
+    response.status(500).json({
+      message,
+    });
+  }
+};
+
+export const getAllPlans = async (request: AuthRequest, response: Response) => {
+  try {
+    const plans = await Plan.findAll({
+      include: [
+        {
+          model: PlanName,
+          as: "names",
+        },
+        {
+          model: PlanPrice,
+          as: "prices",
+        },
+        {
+          model: PlanSpeed,
+          as: "speeds",
+        },
+      ],
+    });
+
+    const formattedPlans = plans.map((plan) => {
+      const planNames = plan.names || [];
+      const planPrices = plan.prices || [];
+      const planSpeeds = plan.speeds || [];
+
+      if (planNames && planPrices && planSpeeds) {
+        planNames.sort((a, b) => b.start.getTime() - a.start.getTime());
+        planPrices.sort((a, b) => b.start.getTime() - a.start.getTime());
+        planSpeeds.sort((a, b) => b.start.getTime() - a.start.getTime());
+      }
+
+      return {
+        id: plan.id,
+        name: planNames[0].name || "",
+        price: planPrices[0].price || "",
+        speed: planSpeeds[0].speed || "",
+      };
+    });
+
+    const plansAmount = formattedPlans.length;
+
+    if (plansAmount > 0) {
+      response.status(200).json({ data: formattedPlans, count: plans.length });
+    } else {
+      response
+        .status(204)
+        .json({ message: "No se ha encontrado ningun plan!" });
+    }
+  } catch (error) {
+    console.log(error);
+    response.status(500).json(error);
+  }
+};
+
+export const getPlanById = async (request: AuthRequest, response: Response) => {
+  const { id } = request.params;
+
+  try {
+    const plan = await Plan.findByPk(id);
+
+    if (!plan) {
+      response.status(404).json({ message: "No se ha encontrado el plan" });
+      return;
+    }
+
+    const planNames = plan?.names || [];
+    const planPrices = plan?.prices || [];
+    const planSpeeds = plan?.speeds || [];
+
+    if (planNames && planPrices && planSpeeds) {
+      planNames.sort((a, b) => b.start.getTime() - a.start.getTime());
+      planPrices.sort((a, b) => b.start.getTime() - a.start.getTime());
+      planSpeeds.sort((a, b) => b.start.getTime() - a.start.getTime());
+    }
+
+    const formatedPlan = {
+      id: plan.dataValues.id,
+      names: planNames,
+      prices: planPrices,
+      speeds: planSpeeds,
+    };
+
+    response.status(200).json({ data: formatedPlan });
   } catch (error) {
     const message = `La transacción falló: Error ${error}`;
     response.status(500).json({
@@ -231,7 +280,20 @@ export const deletePlan = async (request: AuthRequest, response: Response) => {
 
       // TODO Check if the plan is part of any mappings: The ServicePlanMapping table seems to contain references to different plan attributes like planPriceId, planSpeedId, and planNameId. Make sure that the plan you intend to delete is not associated with any mappings in this table.
 
-      // Delete plan names associated with the plan
+      const existingServices = await ServicePlan.findAll({
+        where: {
+          planId: id,
+        },
+      });
+
+      if (existingServices) {
+        response
+          .status(404)
+          .json({ message: "Existen servicios asociados al plan!" });
+        return;
+      }
+
+      /*       // Delete plan names associated with the plan
       await PlanName.destroy({
         where: { planId: id },
         transaction: t,
@@ -250,7 +312,7 @@ export const deletePlan = async (request: AuthRequest, response: Response) => {
       });
 
       // Delete the plan itself
-      await plan.destroy({ transaction: t });
+      await plan.destroy({ transaction: t }); */
 
       response.status(200).json({
         message: "El plan ha sido eliminado exitosamente",
@@ -264,45 +326,10 @@ export const deletePlan = async (request: AuthRequest, response: Response) => {
   }
 };
 
-export const getPlanById = async (request: AuthRequest, response: Response) => {
-  const { id } = request.params;
-
-  try {
-    const plan = await Plan.findByPk(id);
-
-    if (!plan) {
-      response.status(404).json({ message: "No se ha encontrado el plan" });
-      return;
-    }
-
-    const names = await plan.getNames();
-    const prices = await plan.getPrices();
-    const speeds = await plan.getSpeeds();
-
-    names.sort((a, b) => a.start.getTime() - b.start.getTime());
-    prices.sort((a, b) => a.start.getTime() - b.start.getTime());
-    speeds.sort((a, b) => a.start.getTime() - b.start.getTime());
-
-    const formatedPlan = {
-      id: plan.dataValues.id,
-      names,
-      prices,
-      speeds,
-    };
-
-    response.status(200).json({ data: formatedPlan });
-  } catch (error) {
-    const message = `La transacción falló: Error ${error}`;
-    response.status(500).json({
-      message,
-    });
-  }
-};
-
 export default {
   createPlan,
   getAllPlans,
+  getPlanById,
   updatePlan,
   deletePlan,
-  getPlanById,
 };
