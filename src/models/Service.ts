@@ -25,6 +25,8 @@ class Service extends Model<
   declare address?: NonAttribute<ServicesAddress>;
   declare servicePlanMappings?: NonAttribute<ServicePlanMapping[]>;
   declare serviceStatuses: NonAttribute<ServiceStatus[]>;
+  declare router?: NonAttribute<Router>;
+
   // timestamps!
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;

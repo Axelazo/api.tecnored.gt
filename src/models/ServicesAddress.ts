@@ -5,11 +5,13 @@ import {
   CreationOptional,
   DataTypes,
   ForeignKey,
+  NonAttribute,
 } from "sequelize";
 import { sequelize } from "./index";
 import Department from "./Department";
 import Municipality from "./Municipality";
 import Service from "./Service";
+import Location from "./Location";
 
 class ServicesAddress extends Model<
   InferAttributes<ServicesAddress>,
@@ -23,6 +25,9 @@ class ServicesAddress extends Model<
   declare departmentId: ForeignKey<Department["id"]>;
   declare zipCode: string;
   declare serviceId: ForeignKey<Service["id"]>;
+  declare municipality?: NonAttribute<Municipality>;
+
+  declare location?: NonAttribute<Location>;
 
   // timestamps!
   declare createdAt: CreationOptional<Date>;

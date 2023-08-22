@@ -6,6 +6,7 @@ import {
   CreationOptional,
   DataTypes,
   ForeignKey,
+  NonAttribute,
 } from "sequelize";
 import Department from "./Department";
 import { sequelize } from "./index";
@@ -17,6 +18,8 @@ class Municipality extends Model<
   declare id: CreationOptional<number>;
   declare name: string;
   declare departmentId: ForeignKey<Department["id"]>;
+
+  declare department?: NonAttribute<Department>;
   // timestamps!
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;

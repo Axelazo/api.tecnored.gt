@@ -17,7 +17,6 @@ class ServicePlan extends Model<
   declare id: CreationOptional<number>;
   declare planId: ForeignKey<Plan["id"]>;
   declare serviceId: ForeignKey<Service["id"]>;
-  declare start: Date;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
@@ -47,10 +46,6 @@ ServicePlan.init(
         model: Service,
         key: "id",
       },
-    },
-    start: {
-      allowNull: false,
-      type: DataTypes.DATE,
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,

@@ -52,7 +52,7 @@ Department.init(
 Department.hasMany(Municipality, { as: "municipalities" });
 Municipality.belongsTo(Department, {
   foreignKey: "departmentId",
-  as: "municipalities",
+  as: "department",
 });
 
 export default Department;
