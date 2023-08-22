@@ -85,7 +85,7 @@ Plan.hasMany(PlanName, { foreignKey: "planId", as: "names" });
 
 Plan.hasMany(PlanSpeed, { foreignKey: "planId", as: "speeds" });
 
-Plan.hasMany(ServicePlan, { foreignKey: "planId" });
+Plan.hasMany(ServicePlan, { foreignKey: "planId", as: "servicePlans" });
 
 // ServicePlanMapping <=> PlanName
 ServicePlanMapping.belongsTo(PlanName, {
@@ -125,6 +125,7 @@ Service.hasOne(ServicesAddress, { foreignKey: "serviceId", as: "address" });
 
 Service.belongsTo(Router, {
   foreignKey: "routerId",
+  as: "router",
 });
 
 Service.hasMany(ServicesOwners, { foreignKey: "serviceId", as: "owners" });
@@ -177,7 +178,7 @@ Location.belongsTo(ServicesAddress, {
   as: "location",
 });
 
-ServicesAddress.hasOne(Location);
+ServicesAddress.hasOne(Location, { foreignKey: "addressId", as: "location" });
 
 ServiceStatus.belongsTo(Service, { foreignKey: "serviceId" });
 
