@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { AuthRequest, LocationAPI } from "../ts/interfaces/app-interfaces";
 import { sequelize } from "../models";
-import { Transaction } from "sequelize";
+import { Transaction, Op } from "sequelize";
 /* import Client from "../models/Client";
 import Service from "../models/Service";
 import Plan from "../models/Plan";
@@ -29,6 +29,9 @@ import {
   Router,
   ServiceStatus,
   Status,
+  Municipality,
+  Department,
+  ServicePlan,
 } from "../models/Relationships";
 import { generateUniqueNumber } from "../utils/generation";
 import { isValidIPv4, isIPinRange } from "../utils/ip";
@@ -116,9 +119,18 @@ export const createServiceForClient = async (
       // Check if the plan exists
       const plan = await Plan.findByPk(planId, {
         include: [
-          { model: PlanName, as: "names" },
-          { model: PlanPrice, as: "prices" },
-          { model: PlanSpeed, as: "speeds" },
+          {
+            model: PlanName,
+            as: "names",
+          },
+          {
+            model: PlanPrice,
+            as: "prices",
+          },
+          {
+            model: PlanSpeed,
+            as: "speeds",
+          },
         ],
         transaction: t,
       });
@@ -150,9 +162,9 @@ export const createServiceForClient = async (
         const prices = plan.prices;
         const speeds = plan.speeds;
 
-        names.sort((a, b) => a.start.getTime() - b.start.getTime());
-        prices.sort((a, b) => a.start.getTime() - b.start.getTime());
-        speeds.sort((a, b) => a.start.getTime() - b.start.getTime());
+        names.sort((a, b) => b.start.getTime() - a.start.getTime());
+        prices.sort((a, b) => b.start.getTime() - a.start.getTime());
+        speeds.sort((a, b) => b.start.getTime() - a.start.getTime());
 
         mostRecentNameId = names[0].id;
         mostRecentPriceId = prices[0].id;
@@ -251,6 +263,15 @@ export const createServiceForClient = async (
         { transaction: t }
       );
 
+      // Create a reference to the original Plan so if the plan is updated in the future, we would grab the planId and update the Service Plan Mapping to the new Plan properties
+      const newServicePlan = await ServicePlan.create(
+        {
+          planId: plan.id,
+          serviceId: newService.id,
+        },
+        { transaction: t }
+      );
+
       response.status(200).json({
         id: newService.dataValues.id,
       });
@@ -276,7 +297,22 @@ export const getAllServicesOfClient = async (
           model: Service,
           as: "service",
           include: [
-            { model: ServicesAddress, as: "address" },
+            {
+              model: ServicesAddress,
+              as: "address",
+              include: [
+                {
+                  model: Municipality,
+                  as: "municipality",
+                  include: [
+                    {
+                      model: Department,
+                      as: "department",
+                    },
+                  ],
+                },
+              ],
+            },
             {
               model: ServicePlanMapping,
               as: "servicePlanMappings",
@@ -294,18 +330,18 @@ export const getAllServicesOfClient = async (
                   as: "planSpeed",
                 },
               ],
-
-              order: [["createdAt", "ASC"]],
-              limit: 1,
             },
             {
               model: ServiceStatus,
               include: [{ model: Status }],
             },
+            {
+              model: Router,
+              as: "router",
+            },
           ],
         },
       ],
-      order: [["createdAt", "ASC"]],
       where: {
         clientId,
       },
@@ -315,6 +351,7 @@ export const getAllServicesOfClient = async (
       const service = serviceOwner.service;
       const servicePlanMappings = service?.servicePlanMappings || [];
       const serviceStatuses = service?.serviceStatuses || [];
+      const address = `${service?.address?.municipality?.department?.name}, ${service?.address?.municipality?.name}`;
 
       return {
         serviceNumber: service?.serviceNumber || "",
@@ -323,6 +360,8 @@ export const getAllServicesOfClient = async (
         planSpeed: servicePlanMappings[0]?.planSpeed?.speed || "",
         planPrice: servicePlanMappings[0]?.planPrice?.price || "",
         status: serviceStatuses[0] || "",
+        address: address || "",
+        establishmentName: service?.router?.name || "",
       };
     });
 
@@ -339,7 +378,86 @@ export const getAllServicesOfClient = async (
   }
 };
 
+export const getAllServicesInGeographicArea = async (
+  request: AuthRequest,
+  response: Response
+) => {
+  try {
+    const { south, west, north, east } = request.query;
+
+    if (!south || !west || !north || !east) {
+      return response
+        .status(409)
+        .json({ message: "Las coordenadas son requeridas!" });
+    }
+
+    const parseNumeric = (value: any) => {
+      if (typeof value === "string") {
+        const numericValue = parseFloat(value);
+        return !isNaN(numericValue) ? numericValue : null;
+      }
+      return null;
+    };
+
+    const numericSouth = parseNumeric(south);
+    const numericWest = parseNumeric(west);
+    const numericNorth = parseNumeric(north);
+    const numericEast = parseNumeric(east);
+
+    if (
+      numericSouth === null ||
+      numericWest === null ||
+      numericNorth === null ||
+      numericEast === null
+    ) {
+      console.error("Some values couldn't be parsed as numbers.");
+    }
+
+    // Query services within the specified geographic area
+    const services = await Service.findAll({
+      include: [
+        {
+          model: ServicesAddress,
+          as: "address",
+          include: [
+            {
+              model: Location,
+              as: "location",
+              where: {
+                latitude: {
+                  [Op.between]: [numericSouth, numericNorth],
+                },
+                longitude: {
+                  [Op.between]: [numericWest, numericEast],
+                },
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    // Filter services to include only those with a non-null and non-null property location
+    const formattedServices = services
+      .filter((service) => service.address !== null)
+      .map((service) => ({
+        id: service.id,
+        latitude: service.address?.location?.latitude ?? null,
+        longitude: service.address?.location?.longitude ?? null,
+      }));
+
+    if (formattedServices.length > 0) {
+      response.status(200).json({ data: formattedServices });
+    } else {
+      response.status(204).json({ message: "No se ha encontrado ningun plan" });
+    }
+  } catch (error) {
+    response.status(500).json(error);
+  }
+};
+
 export default {
   createServiceForClient,
   getAllServicesOfClient,
+  getAllServicesInGeographicArea,
 };
