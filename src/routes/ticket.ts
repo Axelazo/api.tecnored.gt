@@ -10,6 +10,8 @@ const allowedRoles: RoleInterface[] = [
 ];
 
 const router: Router = Router();
+
 router.get("/", TicketController.getAllTickets);
+router.get("/employee", TicketController.getAllTicketsForEmployee);
 
 export default router;
