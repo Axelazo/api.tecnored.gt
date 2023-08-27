@@ -286,14 +286,14 @@ export const deletePlan = async (request: AuthRequest, response: Response) => {
         },
       });
 
-      if (existingServices) {
+      if (existingServices.length > 0) {
         response
           .status(404)
           .json({ message: "Existen servicios asociados al plan!" });
         return;
       }
 
-      /*       // Delete plan names associated with the plan
+      // Delete plan names associated with the plan
       await PlanName.destroy({
         where: { planId: id },
         transaction: t,
@@ -312,7 +312,7 @@ export const deletePlan = async (request: AuthRequest, response: Response) => {
       });
 
       // Delete the plan itself
-      await plan.destroy({ transaction: t }); */
+      await plan.destroy({ transaction: t });
 
       response.status(200).json({
         message: "El plan ha sido eliminado exitosamente",
