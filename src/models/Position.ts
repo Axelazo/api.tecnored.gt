@@ -1,15 +1,11 @@
 import {
-  Association,
   Model,
   InferAttributes,
   InferCreationAttributes,
   CreationOptional,
   DataTypes,
-  ForeignKey,
 } from "sequelize";
-import Area from "./Department";
 import { sequelize } from "./index";
-import Employee from "./Employee";
 
 class Position extends Model<
   InferAttributes<Position>,
@@ -17,15 +13,10 @@ class Position extends Model<
 > {
   declare id: CreationOptional<number>;
   declare name: string;
-  declare areaId: ForeignKey<Area["id"]>;
   // timestamps!
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
-
-  declare static associations: {
-    area: Association<Position, Area>;
-  };
 }
 
 Position.init(
@@ -40,14 +31,6 @@ Position.init(
     name: {
       allowNull: false,
       type: DataTypes.STRING,
-    },
-    areaId: {
-      allowNull: false,
-      type: DataTypes.INTEGER,
-      references: {
-        model: Area,
-        key: "id",
-      },
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,

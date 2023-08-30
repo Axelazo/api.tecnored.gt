@@ -5,7 +5,6 @@ import {
   InferCreationAttributes,
   CreationOptional,
   DataTypes,
-  ForeignKey,
 } from "sequelize";
 import { sequelize } from "./index";
 import Position from "./Position";
@@ -14,7 +13,6 @@ import Establishment from "./Establishment";
 class Area extends Model<InferAttributes<Area>, InferCreationAttributes<Area>> {
   declare id: CreationOptional<number>;
   declare name: string;
-  declare establishmentId: ForeignKey<Establishment["id"]>;
   // timestamps!
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
@@ -38,15 +36,6 @@ Area.init(
       allowNull: false,
       type: DataTypes.STRING,
     },
-    establishmentId: {
-      allowNull: false,
-      type: DataTypes.INTEGER,
-      references: {
-        model: Establishment,
-        key: "id",
-      },
-    },
-
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
     deletedAt: DataTypes.DATE,
