@@ -32,15 +32,22 @@ router.get(
 
 //Establishments, Areas and Positions
 router.get("/establishments", EstablishmentController.getAllEstablishments);
+router.get("/areas", EstablishmentController.getAllAreas);
+router.get("/positions", EstablishmentController.getAllPositions);
 
 router.get(
   "/establishments/:id/areas",
   EstablishmentController.getAllAreasFromEstablishment
 );
 
-router.get(
-  "/establishment/area/:id/positions",
-  EstablishmentController.getAllPositionsFromArea
+// Establishment and and relationships
+router.post(
+  "/establishments/relationships/areas/create/",
+  EstablishmentController.createEstablishmentAreaRelationship
+);
+router.delete(
+  "/establishments/relationships/areas/delete/",
+  EstablishmentController.deleteEstablishmentAreaRelationship
 );
 
 //Banks and Accounts
