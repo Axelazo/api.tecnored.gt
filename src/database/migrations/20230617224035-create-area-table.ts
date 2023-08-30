@@ -10,14 +10,14 @@ module.exports = {
         type: DataTypes.INTEGER,
         unique: true,
       },
-      establishmentId: {
+      /*       establishmentId: {
         allowNull: false,
         type: DataTypes.INTEGER,
         references: {
           model: "establishments",
           key: "id",
         },
-      },
+      }, */
       name: {
         allowNull: false,
         type: DataTypes.STRING,

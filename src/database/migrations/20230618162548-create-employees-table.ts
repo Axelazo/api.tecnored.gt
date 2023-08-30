@@ -26,14 +26,6 @@ module.exports = {
           key: "id",
         },
       },
-      positionId: {
-        allowNull: true,
-        type: DataTypes.INTEGER,
-        references: {
-          model: "positions",
-          key: "id",
-        },
-      },
       updatedAt: {
         type: DataTypes.DATE,
       },

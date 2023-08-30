@@ -14,14 +14,14 @@ module.exports = {
         allowNull: false,
         type: DataTypes.STRING,
       },
-      areaId: {
+      /*       areaId: {
         allowNull: false,
         type: DataTypes.INTEGER,
         references: {
           model: "areas",
           key: "id",
         },
-      },
+      }, */
       updatedAt: {
         type: DataTypes.DATE,
       },
