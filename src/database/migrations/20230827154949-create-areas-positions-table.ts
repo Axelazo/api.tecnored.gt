@@ -2,27 +2,26 @@ import { QueryInterface, DataTypes } from "sequelize";
 
 module.exports = {
   up: (queryInterface: QueryInterface): Promise<void> =>
-    queryInterface.createTable("employees", {
+    queryInterface.createTable("areaPositions", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: DataTypes.INTEGER,
-        unique: true,
       },
-      employeeNumber: {
-        allowNull: false,
-        type: DataTypes.STRING,
-      },
-      profileUrl: {
-        allowNull: true,
-        type: DataTypes.STRING,
-      },
-      personId: {
+      areaId: {
         allowNull: true,
         type: DataTypes.INTEGER,
         references: {
-          model: "persons",
+          model: "areas",
+          key: "id",
+        },
+      },
+      positionId: {
+        allowNull: true,
+        type: DataTypes.INTEGER,
+        references: {
+          model: "positions",
           key: "id",
         },
       },
@@ -38,5 +37,5 @@ module.exports = {
     }),
 
   down: (queryInterface: QueryInterface): Promise<void> =>
-    queryInterface.dropTable("employees"),
+    queryInterface.dropTable("areaPositions"),
 };

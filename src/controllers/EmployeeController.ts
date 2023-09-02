@@ -219,7 +219,6 @@ export const createEmployee = async (
         {
           personId: newPerson.id,
           employeeNumber,
-          positionId: employee.position,
           profileUrl: profilePicture,
         },
         { transaction: t }
@@ -244,6 +243,8 @@ export const createEmployee = async (
           transaction: t,
         }
       );
+
+      // TODO Create the Employee Establishment -> Area -> Position mapping entry
 
       response.status(200).json({
         id: newEmployee.dataValues.id,
@@ -618,6 +619,8 @@ export const updateEmployee = async (
       existingEmployee.profileUrl = profilePicture;
 
       await existingEmployee.save({ transaction: t, hooks: true });
+
+      // TODO Update the mapping table if changed!
 
       response.status(200).json({
         id: existingEmployee.id,

@@ -34,7 +34,6 @@ const sampleEmployee = {
     employeeNumber: 14772707,
     profileUrl:
       "http://localhost:4000/public/905437f6-3a8a-4ee1-a57f-c5d1d60a0405-img-20190526-wa0084~2.jpg",
-    positionId: 8,
   },
   salary: {
     employeeId: 1,
@@ -45,6 +44,12 @@ const sampleEmployee = {
     employeeId: 1,
     number: "55555555",
     bankId: 2,
+  },
+  employeePositionMappings: {
+    employeeId: 1,
+    establishmentId: 1,
+    areaId: 2,
+    positionId: 4,
   },
 };
 
@@ -141,8 +146,29 @@ module.exports = {
         { transaction }
       );
 
+      const employeePositionMapping = await queryInterface.bulkInsert(
+        "employeePositionMappings",
+        [
+          {
+            ...sampleEmployee.employeePositionMappings,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+        { transaction }
+      );
+
       await transaction.commit();
-      return [person, address, dpi, ...phones, employee, salary, account];
+      return [
+        person,
+        address,
+        dpi,
+        ...phones,
+        employee,
+        salary,
+        account,
+        employeePositionMapping,
+      ];
     } catch (error) {
       await transaction.rollback();
       throw error;
@@ -153,6 +179,11 @@ module.exports = {
     const transaction = await queryInterface.sequelize.transaction();
 
     try {
+      await queryInterface.bulkDelete(
+        "employeePositionMappings",
+        {},
+        { transaction }
+      );
       await queryInterface.bulkDelete("salaries", {}, { transaction });
       await queryInterface.bulkDelete("accounts", {}, { transaction });
       await queryInterface.bulkDelete("employees", {}, { transaction });

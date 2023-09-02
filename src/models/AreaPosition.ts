@@ -4,22 +4,27 @@ import {
   InferCreationAttributes,
   CreationOptional,
   DataTypes,
+  ForeignKey,
 } from "sequelize";
 import { sequelize } from "./index";
+import Area from "./Area";
+import Position from "./Position";
 
-class Position extends Model<
-  InferAttributes<Position>,
-  InferCreationAttributes<Position>
+class AreaPosition extends Model<
+  InferAttributes<AreaPosition>,
+  InferCreationAttributes<AreaPosition>
 > {
   declare id: CreationOptional<number>;
-  declare name: string;
+  declare areaId: ForeignKey<Area["id"]>;
+  declare positionId: ForeignKey<Position["id"]>;
+
   // timestamps!
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
 }
 
-Position.init(
+AreaPosition.init(
   {
     id: {
       allowNull: false,
@@ -28,18 +33,31 @@ Position.init(
       type: DataTypes.INTEGER,
       unique: true,
     },
-    name: {
+
+    areaId: {
       allowNull: false,
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
+      references: {
+        model: Area,
+        key: "id",
+      },
+    },
+    positionId: {
+      allowNull: false,
+      type: DataTypes.INTEGER,
+      references: {
+        model: Position,
+        key: "id",
+      },
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
     deletedAt: DataTypes.DATE,
   },
   {
-    tableName: "positions",
-    sequelize, // passing the `sequelize` instance is required
+    tableName: "areaPositions",
+    sequelize,
   }
 );
 
-export default Position;
+export default AreaPosition;

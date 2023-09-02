@@ -1,13 +1,12 @@
 import { Response } from "express";
 import { AuthRequest } from "../ts/interfaces/app-interfaces";
 import { sequelize } from "../models";
-import { Transaction, Op, Sequelize } from "sequelize";
+import { Transaction } from "sequelize";
 import Plan from "../models/Plan";
 import PlanPrice from "../models/PlanPrice";
 import PlanName from "../models/PlanName";
 import PlanSpeed from "../models/PlanSpeed";
 import { calculateRealValue } from "../utils/misc";
-import Router from "../models/Router";
 import ServicePlan from "../models/ServicePlan";
 
 export const createPlan = async (request: AuthRequest, response: Response) => {

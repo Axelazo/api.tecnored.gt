@@ -12,7 +12,6 @@ import {
 } from "sequelize";
 import { sequelize } from "./index";
 import Person from "./Person";
-import Position from "./Position";
 import Account from "./Account";
 
 class Employee extends Model<
@@ -23,7 +22,6 @@ class Employee extends Model<
   declare employeeNumber: string;
   declare profileUrl: string;
   declare personId: ForeignKey<Person["id"]>;
-  declare positionId: ForeignKey<Position["id"]>;
 
   // timestamps!
   declare createdAt: CreationOptional<Date>;
@@ -65,13 +63,6 @@ Employee.init(
         key: "id",
       },
     },
-    positionId: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: Position,
-        key: "id",
-      },
-    },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
     deletedAt: DataTypes.DATE,
@@ -84,7 +75,5 @@ Employee.init(
 
 Employee.belongsTo(Person, { foreignKey: "personId", as: "person" });
 Person.hasOne(Employee, { foreignKey: "personId", as: "employee" });
-Employee.belongsTo(Position, { foreignKey: "positionId", as: "position" });
-Position.hasMany(Employee, { foreignKey: "positionId", as: "employees" });
 
 export default Employee;

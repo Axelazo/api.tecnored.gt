@@ -25,6 +25,8 @@ import ServicesOwners from "./ServicesOwners";
 import Status from "./Status";
 import User from "./User";
 import Router from "./Router";
+import EstablishmentArea from "./EstablishmentArea";
+import AreaPosition from "./AreaPosition";
 
 // User relationships
 User.belongsToMany(Role, {
@@ -148,21 +150,6 @@ ServicePlanMapping.belongsTo(Service, {
 // Services Plans
 ServicePlan.belongsTo(Plan, { foreignKey: "planId" });
 
-/* // Establishments
-Establishment.hasMany(Service, {
-  foreignKey: "establishmentId",
-  as: "services",
-}); */
-
-// Areas
-Area.hasMany(Position, { foreignKey: "areaId", as: "positions" });
-
-// Positions
-Position.belongsTo(Area, {
-  foreignKey: "areaId",
-  as: "area",
-});
-
 // Client
 Client.belongsTo(Person, { foreignKey: "personId", as: "person" });
 
@@ -194,12 +181,6 @@ Router.belongsTo(Establishment, {
 
 Router.hasMany(Service, { foreignKey: "routerId", as: "services" });
 
-Establishment.hasMany(Area, { foreignKey: "establishmentId", as: "areas" });
-Area.belongsTo(Establishment, {
-  foreignKey: "establishmentId",
-  as: "establishment",
-});
-
 ServicesAddress.belongsTo(Department, {
   foreignKey: "departmentId",
   as: "department",
@@ -208,6 +189,36 @@ ServicesAddress.belongsTo(Department, {
 ServicesAddress.belongsTo(Municipality, {
   foreignKey: "municipalityId",
   as: "municipality",
+});
+
+// Establishments
+Establishment.belongsToMany(Area, {
+  through: EstablishmentArea,
+  foreignKey: "establishmentId",
+  otherKey: "areaId",
+  as: "areas",
+});
+
+Area.belongsToMany(Establishment, {
+  through: EstablishmentArea,
+  foreignKey: "areaId",
+  otherKey: "establishmentId",
+  as: "establishments",
+});
+
+// Areas
+Area.belongsToMany(Position, {
+  through: "areaPositions",
+  foreignKey: "areaId",
+  otherKey: "positionId",
+  as: "positions",
+});
+
+Position.belongsToMany(Area, {
+  through: "areaPositions",
+  foreignKey: "positionId",
+  otherKey: "areaId",
+  as: "areas",
 });
 
 export {
@@ -238,4 +249,6 @@ export {
   ServiceStatus,
   Status,
   Router,
+  AreaPosition,
+  EstablishmentArea,
 };

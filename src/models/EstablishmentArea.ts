@@ -1,29 +1,30 @@
 import {
-  Association,
   Model,
   InferAttributes,
   InferCreationAttributes,
   CreationOptional,
   DataTypes,
+  ForeignKey,
 } from "sequelize";
 import { sequelize } from "./index";
-import Position from "./Position";
 import Establishment from "./Establishment";
+import Area from "./Area";
 
-class Area extends Model<InferAttributes<Area>, InferCreationAttributes<Area>> {
+class EstablishmentArea extends Model<
+  InferAttributes<EstablishmentArea>,
+  InferCreationAttributes<EstablishmentArea>
+> {
   declare id: CreationOptional<number>;
-  declare name: string;
+  declare establishmentId: ForeignKey<Establishment["id"]>;
+  declare areaId: ForeignKey<Area["id"]>;
+
   // timestamps!
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
-
-  declare static associations: {
-    positions: Association<Area, Position>;
-  };
 }
 
-Area.init(
+EstablishmentArea.init(
   {
     id: {
       allowNull: false,
@@ -32,18 +33,30 @@ Area.init(
       type: DataTypes.INTEGER,
       unique: true,
     },
-    name: {
+    establishmentId: {
       allowNull: false,
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
+      references: {
+        model: Establishment,
+        key: "id",
+      },
+    },
+    areaId: {
+      allowNull: false,
+      type: DataTypes.INTEGER,
+      references: {
+        model: Area,
+        key: "id",
+      },
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
     deletedAt: DataTypes.DATE,
   },
   {
-    tableName: "areas",
-    sequelize, // passing the `sequelize` instance is required
+    tableName: "establishmentAreas",
+    sequelize,
   }
 );
 
-export default Area;
+export default EstablishmentArea;
