@@ -35,12 +35,12 @@ router.get("/establishments", EstablishmentController.getAllEstablishments);
 router.get("/areas", EstablishmentController.getAllAreas);
 router.get("/positions", EstablishmentController.getAllPositions);
 
+// Establishment and and relationships
 router.get(
   "/establishments/:id/areas",
   EstablishmentController.getAllAreasFromEstablishment
 );
 
-// Establishment and and relationships
 router.post(
   "/establishments/relationships/areas/create/",
   EstablishmentController.createEstablishmentAreaRelationship
@@ -48,6 +48,16 @@ router.post(
 router.delete(
   "/establishments/relationships/areas/delete/",
   EstablishmentController.deleteEstablishmentAreaRelationship
+);
+
+router.get(
+  "/establishments/:establishmentId/areas/:areaId/positions",
+  EstablishmentController.getAllPositionsFromEstablishmentArea
+);
+
+router.post(
+  "/establishments/relationships/areas/relationships/positions/create",
+  EstablishmentController.createEstablishmentAreaPositionRelationship
 );
 
 //Banks and Accounts
