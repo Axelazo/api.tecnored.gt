@@ -25,6 +25,8 @@ import ServicesOwners from "./ServicesOwners";
 import Status from "./Status";
 import User from "./User";
 import Router from "./Router";
+import EstablishmentArea from "./EstablishmentArea";
+import AreaPosition from "./AreaPosition";
 
 // User relationships
 User.belongsToMany(Role, {
@@ -191,14 +193,14 @@ ServicesAddress.belongsTo(Municipality, {
 
 // Establishments
 Establishment.belongsToMany(Area, {
-  through: "establishmentAreas",
+  through: EstablishmentArea,
   foreignKey: "establishmentId",
   otherKey: "areaId",
   as: "areas",
 });
 
 Area.belongsToMany(Establishment, {
-  through: "establishmentAreas",
+  through: EstablishmentArea,
   foreignKey: "areaId",
   otherKey: "establishmentId",
   as: "establishments",
@@ -211,6 +213,7 @@ Area.belongsToMany(Position, {
   otherKey: "positionId",
   as: "positions",
 });
+
 Position.belongsToMany(Area, {
   through: "areaPositions",
   foreignKey: "positionId",
@@ -246,4 +249,6 @@ export {
   ServiceStatus,
   Status,
   Router,
+  AreaPosition,
+  EstablishmentArea,
 };
