@@ -1,11 +1,14 @@
 import { Response } from "express";
 import { AuthRequest } from "../ts/interfaces/app-interfaces";
-import Establishment from "../models/Establishment";
-import Area from "../models/Area";
-import Position from "../models/Position";
 import { sequelize } from "../models";
 import { Transaction, Op } from "sequelize";
-import EstablishmentArea from "../models/EstablishmentArea";
+import {
+  Area,
+  Position,
+  AreaPosition,
+  EstablishmentArea,
+  Establishment,
+} from "../models/Relationships";
 
 export const getAllEstablishments = async (
   request: AuthRequest,
@@ -184,6 +187,179 @@ export const deleteEstablishmentAreaRelationship = async (
   }
 };
 
+export const createEstablishmentAreaPositionRelationship = async (
+  request: AuthRequest,
+  response: Response
+) => {
+  const { establishmentId, areaId, positionId } = request.body;
+
+  try {
+    sequelize.transaction(async (t: Transaction) => {
+      if (!establishmentId) {
+        return response.status(422).json({
+          message: "El establecimiento es requerido!",
+        });
+      }
+
+      if (!areaId) {
+        return response.status(422).json({
+          message: "El area es requerida!",
+        });
+      }
+
+      if (!positionId) {
+        return response.status(422).json({
+          message: "La posición es requerida!",
+        });
+      }
+
+      const existingEstablishment = await Establishment.findByPk(
+        establishmentId
+      );
+
+      if (!existingEstablishment) {
+        return response.status(404).json({
+          message: "No se ha encontrado el establecimiento!",
+        });
+      }
+
+      const existingArea = await Area.findByPk(areaId);
+
+      if (!existingArea) {
+        return response.status(422).json({
+          message: "No se ha encontrado el area!",
+        });
+      }
+
+      const existingPosition = await Position.findByPk(positionId);
+
+      if (!existingPosition) {
+        return response.status(422).json({
+          message: "No se ha encontrado la posición!",
+        });
+      }
+
+      const existingRelationship = await AreaPosition.findOne({
+        where: {
+          areaId: areaId,
+          positionId: positionId,
+        },
+      });
+
+      if (existingRelationship) {
+        return response.status(409).json({
+          message: "Esa relación entre área y posición ya existe!",
+        });
+      }
+
+      const newAreaPosition = await AreaPosition.create(
+        {
+          areaId,
+          positionId,
+        },
+        { transaction: t }
+      );
+
+      response.status(200).json({
+        areaPositionId: newAreaPosition.id,
+      });
+    });
+  } catch (error) {
+    response.status(500).json(error);
+  }
+};
+
+export const getAllPositionsFromEstablishmentArea = async (
+  request: AuthRequest,
+  response: Response
+) => {
+  const { establishmentId, areaId } = request.params;
+
+  console.log(request.params);
+
+  try {
+    if (!establishmentId) {
+      return response.status(422).json({
+        message: "El establecimiento es requerido!",
+      });
+    }
+
+    if (!areaId) {
+      return response.status(422).json({
+        message: "El area es requerida!",
+      });
+    }
+
+    const existingEstablishment = await Establishment.findByPk(establishmentId);
+
+    if (!existingEstablishment) {
+      return response.status(404).json({
+        message: "No se ha encontrado el establecimiento!",
+      });
+    }
+
+    const existingArea = await Area.findByPk(areaId);
+
+    if (!existingArea) {
+      return response.status(422).json({
+        message: "No se ha encontrado el area!",
+      });
+    }
+
+    const positions = await Position.findAll();
+
+    if (!positions || positions.length == 0) {
+      return response.status(404).json({
+        message: "No se han encontrado posiciones!",
+      });
+    }
+
+    const establishmentAreas = await EstablishmentArea.findAll({
+      where: {
+        establishmentId,
+        areaId,
+      },
+    });
+
+    if (!establishmentAreas || establishmentAreas.length == 0) {
+      return response.status(422).json({
+        message:
+          "No se han encontrado combinaciones de establecimiento y area!",
+      });
+    }
+
+    const areaPositions = await AreaPosition.findAll({
+      where: {
+        areaId,
+      },
+    });
+
+    if (!areaPositions || areaPositions.length == 0) {
+      return response.status(422).json({
+        message: "No se han encontrado combinaciones de areas y posiciones!",
+      });
+    }
+
+    // Filter positions associated with the specific area and establishment
+    const positionsToShow = areaPositions.map((areaPosition) => {
+      return positions.find(
+        (position) => position.id === areaPosition.positionId
+      );
+    });
+
+    if (positions.length > 0) {
+      response.status(200).json({
+        data: positionsToShow,
+      });
+    } else {
+      response.status(204).json();
+    }
+  } catch (error) {
+    console.log(error);
+    response.status(500).json(error);
+  }
+};
+
 export default {
   getAllEstablishments,
   getAllAreasFromEstablishment,
@@ -191,4 +367,6 @@ export default {
   getAllPositions,
   createEstablishmentAreaRelationship,
   deleteEstablishmentAreaRelationship,
+  createEstablishmentAreaPositionRelationship,
+  getAllPositionsFromEstablishmentArea,
 };
