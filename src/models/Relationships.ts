@@ -27,6 +27,11 @@ import User from "./User";
 import Router from "./Router";
 import EstablishmentArea from "./EstablishmentArea";
 import AreaPosition from "./AreaPosition";
+import EmployeePositionMapping from "./EmployeePositionMapping";
+import TicketStatus from "./TicketStatus";
+import TicketStatuses from "./TicketStatuses";
+import Ticket from "./Ticket";
+import TicketAssignees from "./TicketAssignees";
 
 // User relationships
 User.belongsToMany(Role, {
@@ -208,17 +213,100 @@ Area.belongsToMany(Establishment, {
 
 // Areas
 Area.belongsToMany(Position, {
-  through: "areaPositions",
+  through: AreaPosition,
   foreignKey: "areaId",
   otherKey: "positionId",
   as: "positions",
 });
 
 Position.belongsToMany(Area, {
-  through: "areaPositions",
+  through: AreaPosition,
   foreignKey: "positionId",
   otherKey: "areaId",
   as: "areas",
+});
+
+EmployeePositionMapping.belongsTo(Employee, {
+  as: "employeePositionMapping",
+  foreignKey: "employeeId",
+});
+Employee.hasMany(EmployeePositionMapping, {
+  as: "employeePositionMapping",
+  foreignKey: "employeeId",
+});
+
+EmployeePositionMapping.belongsTo(Position, {
+  foreignKey: "positionId",
+  as: "position",
+});
+
+Position.hasMany(EmployeePositionMapping, {
+  foreignKey: "positionId",
+  as: "position",
+});
+
+EmployeePositionMapping.belongsTo(Area, {
+  foreignKey: "areaId",
+  as: "area",
+});
+
+Area.hasMany(EmployeePositionMapping, {
+  foreignKey: "areaId",
+  as: "area",
+});
+
+EmployeePositionMapping.belongsTo(Establishment, {
+  foreignKey: "establishmentId",
+  as: "establishment",
+});
+
+Establishment.hasMany(EmployeePositionMapping, {
+  foreignKey: "establishmentId",
+  as: "establishment",
+});
+
+// Employee-Position association
+Employee.belongsToMany(Position, {
+  through: EmployeePositionMapping,
+  foreignKey: "employeeId",
+});
+
+Position.belongsToMany(Employee, {
+  through: EmployeePositionMapping,
+  foreignKey: "positionId",
+});
+
+// TICKETS
+// Areas
+/* Ticket.hasMany(TicketStatuses, {
+  // through: TicketStatuses,
+  foreignKey: "ticketId",
+  // otherKey: "statusId",
+  as: "statuses",
+}); */
+
+Ticket.belongsToMany(TicketStatus, {
+  through: TicketStatuses,
+  foreignKey: "ticketId",
+  as: "statuses",
+});
+
+TicketStatus.belongsToMany(Ticket, {
+  through: TicketStatuses,
+  foreignKey: "statusId",
+  as: "tickets",
+});
+
+Ticket.belongsToMany(Employee, {
+  through: TicketAssignees,
+  foreignKey: "ticketId",
+  as: "assignees",
+});
+
+Employee.belongsToMany(Ticket, {
+  through: TicketAssignees,
+  foreignKey: "assigneeId",
+  as: "assignedTickets",
 });
 
 export {
@@ -251,4 +339,7 @@ export {
   Router,
   AreaPosition,
   EstablishmentArea,
+  Ticket,
+  TicketStatus,
+  TicketStatuses,
 };
