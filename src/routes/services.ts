@@ -13,16 +13,24 @@ const allowedRoles: RoleInterface[] = [
 const router: Router = Router();
 router.post("/create", ServiceController.createServiceForClient);
 router.get(
-  "/client/:id",
+  "/client/:clientId",
   /*   Auth.authenticate,
   Auth.checkRoles(allowedRoles), */
   ServiceController.getAllServicesOfClient
 );
+
 router.get(
   "/area",
   /*   Auth.authenticate,
   Auth.checkRoles(allowedRoles), */
   ServiceController.getAllServicesInGeographicArea
+);
+
+router.get(
+  "/:id",
+  /*   Auth.authenticate,
+  Auth.checkRoles(allowedRoles), */
+  ServiceController.getServiceWithId
 );
 
 export default router;

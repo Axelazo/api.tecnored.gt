@@ -27,6 +27,13 @@ router.get(
   EmployeeController.getEmployeeById
 );
 
+router.get(
+  "/positions/:positionName",
+  Auth.authenticate,
+  Auth.checkRoles(allowedRoles),
+  EmployeeController.getAllEmployeesWithPosition
+);
+
 router.post(
   "/create",
   upload.fields([
