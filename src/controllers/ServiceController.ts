@@ -32,6 +32,8 @@ import {
   Municipality,
   Department,
   ServicePlan,
+  Person,
+  Address,
 } from "../models/Relationships";
 import { generateUniqueNumber } from "../utils/generation";
 import { isValidIPv4, isIPinRange } from "../utils/ip";
@@ -288,8 +290,7 @@ export const getAllServicesOfClient = async (
   request: AuthRequest,
   response: Response
 ) => {
-  const { clientId = 1 } = request.params;
-
+  const { clientId } = request.params;
   try {
     const services = await ServicesOwners.findAll({
       include: [
@@ -354,6 +355,7 @@ export const getAllServicesOfClient = async (
       const address = `${service?.address?.municipality?.department?.name}, ${service?.address?.municipality?.name}`;
 
       return {
+        id: service?.id,
         serviceNumber: service?.serviceNumber || "",
         ipAddress: service?.ipAddress || "",
         planName: servicePlanMappings[0]?.planName?.name || "",
@@ -378,12 +380,107 @@ export const getAllServicesOfClient = async (
   }
 };
 
+export const getServiceWithId = async (
+  request: AuthRequest,
+  response: Response
+) => {
+  const { id } = request.params;
+  try {
+    const service = await Service.findOne({
+      include: [
+        {
+          model: ServicesAddress,
+          as: "address",
+          include: [
+            {
+              model: Municipality,
+              as: "municipality",
+              include: [
+                {
+                  model: Department,
+                  as: "department",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          model: ServicePlanMapping,
+          as: "servicePlanMappings",
+          include: [
+            {
+              model: PlanName,
+              as: "planName",
+            },
+            {
+              model: PlanPrice,
+              as: "planPrice",
+            },
+            {
+              model: PlanSpeed,
+              as: "planSpeed",
+            },
+          ],
+          order: [["start", "DESC"]], // Order by start date in descending order
+          limit: 1, // Limit to the most recent record
+        },
+        {
+          model: ServiceStatus,
+          include: [{ model: Status }],
+        },
+        {
+          model: Router,
+          as: "router",
+        },
+        {
+          model: ServicesOwners,
+          as: "owners",
+          include: [
+            {
+              model: Client,
+              as: "client",
+              include: [
+                {
+                  model: Person,
+                  as: "person",
+                  include: [
+                    {
+                      model: Address,
+                      as: "address",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          order: [["start", "DESC"]], // Order by start date in descending order
+          limit: 1, // Limit to the most recent record
+        },
+      ],
+      where: {
+        id,
+      },
+    });
+
+    if (service) {
+      response.status(200).json({ data: service });
+    } else {
+      response.status(204).json({ message: "No se ha encontrado ningun plan" });
+    }
+  } catch (error) {
+    console.log(error);
+    response.status(500).json(error);
+  }
+};
+
 export const getAllServicesInGeographicArea = async (
   request: AuthRequest,
   response: Response
 ) => {
   try {
     const { south, west, north, east } = request.query;
+
+    console.log(`Request query is: ` + request.query);
 
     if (!south || !west || !north || !east) {
       return response
@@ -447,7 +544,9 @@ export const getAllServicesInGeographicArea = async (
       }));
 
     if (formattedServices.length > 0) {
-      response.status(200).json({ data: formattedServices });
+      response
+        .status(200)
+        .json({ data: formattedServices, unformatted: services });
     } else {
       response.status(204).json({ message: "No se ha encontrado ningun plan" });
     }
@@ -460,4 +559,5 @@ export default {
   createServiceForClient,
   getAllServicesOfClient,
   getAllServicesInGeographicArea,
+  getServiceWithId,
 };
