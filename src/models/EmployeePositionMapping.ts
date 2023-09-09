@@ -7,7 +7,6 @@ import {
   ForeignKey,
 } from "sequelize";
 import { sequelize } from "./index";
-import Service from "./Service";
 import Employee from "./Employee";
 import Establishment from "./Establishment";
 import Area from "./Area";
@@ -74,7 +73,7 @@ EmployeePositionMapping.init(
     deletedAt: DataTypes.DATE,
   },
   {
-    tableName: "servicePlanMappings",
+    tableName: "employeePositionMappings",
     sequelize,
   }
 );
