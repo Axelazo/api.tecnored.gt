@@ -23,6 +23,7 @@ import Establishment from "../models/Establishment";
 import Position from "../models/Position";
 import Area from "../models/Area";
 import Bank from "../models/Bank";
+import EmployeePositionMapping from "../models/EmployeePositionMapping";
 
 // TODO: Implement validation, delete sensitive fields,
 export const createEmployee = async (
@@ -67,14 +68,30 @@ export const createEmployee = async (
       if (!employee.nitNumber) {
         return response.status(422).json({
           message: "El nit es requerido!",
-          data: request.body,
         });
       }
 
       if (!dpi.number) {
         return response.status(422).json({
           message: "El DPI es requerido!",
-          data: request.body,
+        });
+      }
+
+      if (!employee.establishment) {
+        return response.status(422).json({
+          message: "El establecimiento es requerido!",
+        });
+      }
+
+      if (!employee.position) {
+        return response.status(422).json({
+          message: "La posición es requerida!",
+        });
+      }
+
+      if (!employee.area) {
+        return response.status(422).json({
+          message: "El área es requerido!",
         });
       }
 
@@ -245,6 +262,15 @@ export const createEmployee = async (
       );
 
       // TODO Create the Employee Establishment -> Area -> Position mapping entry
+      const newEmployeePositionMapping = await EmployeePositionMapping.create(
+        {
+          employeeId: newEmployee.id,
+          establishmentId: employee.establishment,
+          areaId: employee.area,
+          positionId: employee.position,
+        },
+        { transaction: t }
+      );
 
       response.status(200).json({
         id: newEmployee.dataValues.id,
@@ -295,6 +321,37 @@ export const getAllEmployees = async (
   }
 };
 
+export const getAllEmployeesWithPosition = async (
+  request: AuthRequest,
+  response: Response
+) => {
+  const { positionName } = request.params;
+
+  const likeString = `%${positionName}%`;
+
+  const employees = await Employee.findAll({
+    include: [
+      { model: Person, as: "person" },
+      {
+        model: Position,
+        where: {
+          name: {
+            [Op.like]: likeString,
+          },
+        },
+      },
+    ],
+  });
+
+  if (employees.length > 0) {
+    response.status(200).json({ data: employees });
+  } else {
+    response
+      .status(204)
+      .json({ message: "No se han encontrado empleados con esa posición" });
+  }
+};
+
 export const getEmployeeById = async (
   request: AuthRequest,
   response: Response
@@ -333,14 +390,18 @@ export const getEmployeeById = async (
           ],
         },
         {
-          model: Position,
-          as: "position",
+          model: EmployeePositionMapping,
+          as: "employeePositionMapping",
           include: [
+            {
+              model: Position,
+              as: "position",
+            },
             {
               model: Area,
               as: "area",
-              include: [{ model: Establishment, as: "establishment" }],
             },
+            { model: Establishment, as: "establishment" },
           ],
         },
         {
@@ -596,9 +657,11 @@ export const updateEmployee = async (
       // Update Address
       const existingAddress = await Address.findOne({
         where: {
-          personId: existingEmployee.id,
+          personId: existingPerson.id,
         },
       });
+
+      console.log(existingAddress);
 
       if (!existingAddress) {
         const message = `No se ha encontrado la direccion del cliente`;
@@ -705,6 +768,7 @@ export const deleteEmployee = async (
 export default {
   createEmployee,
   getAllEmployees,
+  getAllEmployeesWithPosition,
   getEmployeeById,
   updateEmployee,
   deleteEmployee,
