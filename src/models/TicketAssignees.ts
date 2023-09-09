@@ -16,8 +16,9 @@ class TicketAssignees extends Model<
   InferCreationAttributes<TicketAssignees>
 > {
   declare id: CreationOptional<number>;
-  declare ticketId: ForeignKey<Ticket>;
-  declare assigneeId: ForeignKey<Employee>;
+  declare ticketId: ForeignKey<Ticket["id"]>;
+  declare assigneeId: ForeignKey<Employee["id"]>;
+  declare start: Date;
 
   // timestamps!
   declare createdAt: CreationOptional<Date>;
@@ -54,6 +55,10 @@ TicketAssignees.init(
         model: Employee,
         key: "id",
       },
+    },
+    start: {
+      allowNull: false,
+      type: DataTypes.DATE,
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,

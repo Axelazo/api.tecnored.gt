@@ -74,6 +74,4 @@ Ticket.init(
   }
 );
 
-Ticket.hasMany(TicketStatuses, { foreignKey: "ticketId", as: "statuses" });
-
 export default Ticket;

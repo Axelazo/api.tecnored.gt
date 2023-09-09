@@ -15,8 +15,8 @@ class TicketStatuses extends Model<
   InferCreationAttributes<TicketStatuses>
 > {
   declare id: CreationOptional<number>;
-  declare ticketId: ForeignKey<Ticket>;
-  declare statusId: ForeignKey<TicketStatuses>;
+  declare ticketId: ForeignKey<Ticket["id"]>;
+  declare statusId: ForeignKey<TicketStatus["id"]>;
 
   // timestamps!
   declare createdAt: CreationOptional<Date>;
