@@ -11,14 +11,19 @@ import { sequelize } from "./index";
 import Service from "./Service";
 import User from "./User";
 import TicketStatuses from "./TicketStatuses";
+import TicketReason from "./TicketReason";
 
 class Ticket extends Model<
   InferAttributes<Ticket>,
   InferCreationAttributes<Ticket>
 > {
   declare id: CreationOptional<number>;
-  declare title: string;
-  declare description: string;
+  declare reasonId: ForeignKey<TicketReason["id"]>;
+  declare customReason?: string;
+  declare estimatedStart: CreationOptional<Date>;
+  declare estimatedFinish: CreationOptional<Date>;
+  declare description?: string;
+  declare priority: number;
   declare serviceId: ForeignKey<Service["id"]>;
   declare creatorId: ForeignKey<User["id"]>;
 
@@ -40,13 +45,33 @@ Ticket.init(
       type: DataTypes.INTEGER,
       unique: true,
     },
-    title: {
+    priority: {
       allowNull: false,
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
+    },
+    reasonId: {
+      allowNull: false,
+      type: DataTypes.INTEGER,
+      references: {
+        model: TicketReason,
+        key: "id",
+      },
+    },
+    customReason: {
+      allowNull: true,
+      type: DataTypes.TEXT,
+    },
+    estimatedStart: {
+      allowNull: true,
+      type: DataTypes.DATE,
+    },
+    estimatedFinish: {
+      allowNull: true,
+      type: DataTypes.DATE,
     },
     description: {
-      allowNull: false,
-      type: DataTypes.STRING,
+      allowNull: true,
+      type: DataTypes.TEXT,
     },
     serviceId: {
       allowNull: false,

@@ -9,10 +9,32 @@ module.exports = {
         primaryKey: true,
         type: DataTypes.INTEGER,
       },
-      title: {
-        type: DataTypes.STRING,
+      priority: {
+        allowNull: false,
+        type: DataTypes.INTEGER,
+      },
+      reasonId: {
+        allowNull: false,
+        type: DataTypes.INTEGER,
+        references: {
+          model: "ticketReasons",
+          key: "id",
+        },
+      },
+      customReason: {
+        allowNull: true,
+        type: DataTypes.TEXT,
+      },
+      estimatedStart: {
+        allowNull: true,
+        type: DataTypes.DATE,
+      },
+      estimatedFinish: {
+        allowNull: true,
+        type: DataTypes.DATE,
       },
       description: {
+        allowNull: true,
         type: DataTypes.TEXT,
       },
       serviceId: {
