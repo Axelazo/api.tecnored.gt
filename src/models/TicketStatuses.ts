@@ -17,6 +17,7 @@ class TicketStatuses extends Model<
   declare id: CreationOptional<number>;
   declare ticketId: ForeignKey<Ticket["id"]>;
   declare statusId: ForeignKey<TicketStatus["id"]>;
+  declare description: CreationOptional<string>;
 
   // timestamps!
   declare createdAt: CreationOptional<Date>;
@@ -48,6 +49,10 @@ TicketStatuses.init(
         model: TicketStatus,
         key: "id",
       },
+    },
+    description: {
+      allowNull: true,
+      type: DataTypes.STRING,
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
