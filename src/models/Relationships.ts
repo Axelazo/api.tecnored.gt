@@ -32,6 +32,7 @@ import TicketStatus from "./TicketStatus";
 import TicketStatuses from "./TicketStatuses";
 import Ticket from "./Ticket";
 import TicketAssignees from "./TicketAssignees";
+import TicketReason from "./TicketReason";
 
 // User relationships
 User.belongsToMany(Role, {
@@ -297,6 +298,17 @@ TicketStatus.belongsToMany(Ticket, {
   as: "tickets",
 });
 
+TicketStatuses.belongsTo(TicketStatus, {
+  foreignKey: "statusId",
+  as: "status",
+});
+
+TicketStatus.hasMany(TicketStatuses, { foreignKey: "statusId", as: "stats" });
+Ticket.hasMany(TicketStatuses, {
+  foreignKey: "ticketId",
+  as: "ticketStatuses",
+});
+
 Ticket.belongsToMany(Employee, {
   through: TicketAssignees,
   foreignKey: "ticketId",
@@ -308,6 +320,24 @@ Employee.belongsToMany(Ticket, {
   foreignKey: "assigneeId",
   as: "assignedTickets",
 });
+
+Service.hasMany(Ticket, { as: "tickets", foreignKey: "serviceId" });
+
+Ticket.belongsTo(Service, { as: "service", foreignKey: "serviceId" });
+
+Service.belongsToMany(Client, {
+  through: ServicesOwners,
+  foreignKey: "clientId",
+  as: "clients",
+});
+
+Client.belongsToMany(Service, {
+  through: ServicesOwners,
+  foreignKey: "serviceId",
+  as: "services",
+});
+
+Ticket.belongsTo(TicketReason, { as: "reason", foreignKey: "reasonId" });
 
 export {
   Account,
