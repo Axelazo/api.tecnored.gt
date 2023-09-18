@@ -21,9 +21,13 @@ module.exports = {
         allowNull: false,
         type: DataTypes.INTEGER,
         references: {
-          model: "ticketStatuses",
+          model: "ticketStatus",
           key: "id",
         },
+      },
+      description: {
+        allowNull: true,
+        type: DataTypes.TEXT,
       },
       updatedAt: {
         type: DataTypes.DATE,
