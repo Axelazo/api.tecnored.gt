@@ -5,13 +5,19 @@ import {
   Ticket,
   TicketStatus,
   TicketStatuses,
+  Service,
+  Client,
+  Router,
+  Location,
+  ServicesAddress,
 } from "../models/Relationships";
 import TicketAssignees from "../models/TicketAssignees";
 import Employee from "../models/Employee";
 import User from "../models/User";
 import { sequelize } from "../models";
 import { Sequelize, Transaction } from "sequelize";
-import Service from "../models/Service";
+import TicketReason from "../models/TicketReason";
+import Phone from "../models/Phone";
 
 export const createTicketForService = async (
   request: AuthRequest,
@@ -26,6 +32,17 @@ export const createTicketForService = async (
     priority,
     reasonId,
     customReason,
+    description,
+  }: {
+    serviceId: number;
+    clientId: number;
+    employeeId: number;
+    estimatedFinish: Date;
+    estimatedStart: Date;
+    priority: number;
+    reasonId: number;
+    customReason: string;
+    description: string;
   } = request.body;
   try {
     if (!serviceId) {
@@ -98,10 +115,14 @@ export const createTicketForService = async (
 
       const newTicket = await Ticket.create(
         {
-          title: "test",
-          description: "test",
-          serviceId: serviceId,
-          creatorId: 1,
+          priority,
+          reasonId,
+          customReason,
+          estimatedStart,
+          estimatedFinish,
+          description,
+          serviceId,
+          creatorId: 1, //for now defaults everything to the first user
         },
         { transaction: t }
       );
@@ -143,6 +164,7 @@ export const getAllTickets = async (
   try {
     const tickets = await Ticket.findAll({
       include: [
+        { model: TicketReason, as: "reason" },
         {
           model: TicketStatus,
           as: "statuses",
@@ -154,6 +176,25 @@ export const getAllTickets = async (
           model: Employee,
           as: "assignees",
           include: [{ model: Person, as: "person" }],
+        },
+        {
+          model: Service,
+          as: "service",
+          include: [
+            {
+              model: Client,
+              as: "clients",
+              through: {
+                as: "owners",
+              },
+              include: [
+                {
+                  model: Person,
+                  as: "person",
+                },
+              ],
+            },
+          ],
         },
       ],
       order: [
@@ -217,12 +258,98 @@ export const getAllTicketsForEmployee = async (
   }
 };
 
+export const getTicketById = async (
+  request: AuthRequest,
+  response: Response
+) => {
+  const { id } = request.params;
+
+  if (!id) {
+    response.status(409).json({ message: "El id del ticket es requerido" });
+  }
+
+  try {
+    const ticket = await Ticket.findByPk(id, {
+      include: [
+        { model: TicketReason, as: "reason" },
+        {
+          model: TicketStatuses,
+          as: "ticketStatuses",
+          /*           through: {
+            as: "ticketsStatuses",
+          }, */
+          include: [
+            {
+              model: TicketStatus,
+              as: "status",
+            },
+          ],
+        },
+        {
+          model: Employee,
+          as: "assignees",
+          include: [{ model: Person, as: "person" }],
+        },
+        {
+          model: Service,
+          as: "service",
+          include: [
+            {
+              model: Client,
+              as: "clients",
+              through: {
+                as: "owners",
+              },
+              include: [
+                {
+                  model: Person,
+                  as: "person",
+                  include: [{ model: Phone, as: "phones" }],
+                },
+              ],
+            },
+            {
+              model: Router,
+              as: "router",
+            },
+            {
+              model: ServicesAddress,
+              as: "address",
+              include: [
+                {
+                  model: Location,
+                  as: "location",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      //order: [[Sequelize.literal("`ticketsStatuses`.`createdAt`"), "DESC"]],
+      order: [
+        [{ model: TicketStatuses, as: "ticketStatuses" }, "createdAt", "DESC"],
+      ],
+    });
+
+    if (ticket) {
+      response.status(200).json({ data: ticket });
+    } else {
+      response
+        .status(204)
+        .json({ message: "No se ha encontrado ningun ticket" });
+    }
+  } catch (error) {
+    console.log(error);
+    response.status(500).json(error);
+  }
+};
+
 export const updateTicketStatus = async (
   request: AuthRequest,
   response: Response
 ) => {
   const { id } = request.params;
-  const { statusId } = request.body;
+  const { statusId, description } = request.body;
   const ticketId = parseInt(id);
 
   if (!id) {
@@ -250,6 +377,7 @@ export const updateTicketStatus = async (
         {
           ticketId,
           statusId,
+          description,
         },
         { transaction: t }
       );
@@ -262,9 +390,56 @@ export const updateTicketStatus = async (
   }
 };
 
+export const deleteTicket = async (
+  request: AuthRequest,
+  response: Response
+) => {
+  const { id } = request.params;
+
+  console.log(`${id} is this valueeee!`);
+  if (!id) {
+    response.status(409).json({ message: "El id del ticket es requerido" });
+  }
+
+  try {
+    await sequelize.transaction(async (t: Transaction) => {
+      await Ticket.findByPk(id);
+      if (!id) {
+        response.status(404).json({ message: "El ticket indicado no  existe" });
+      }
+
+      await TicketStatuses.destroy({
+        where: {
+          ticketId: id,
+        },
+        transaction: t,
+      });
+
+      await TicketAssignees.destroy({
+        where: { ticketId: id },
+        transaction: t,
+      });
+
+      await Ticket.destroy({
+        where: {
+          id,
+        },
+        transaction: t,
+      });
+    });
+
+    response.status(200).json();
+  } catch (error) {
+    console.log(error);
+    response.status(500).json(error);
+  }
+};
+
 export default {
   getAllTickets,
   getAllTicketsForEmployee,
   createTicketForService,
   updateTicketStatus,
+  getTicketById,
+  deleteTicket,
 };
