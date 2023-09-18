@@ -12,8 +12,10 @@ const allowedRoles: RoleInterface[] = [
 const router: Router = Router();
 
 router.get("/", TicketController.getAllTickets);
+router.get("/:id", TicketController.getTicketById);
 router.get("/employee", TicketController.getAllTicketsForEmployee);
 router.post("/create", TicketController.createTicketForService);
 router.put("/:id/update", TicketController.updateTicketStatus);
+router.delete("/delete/:id", TicketController.deleteTicket);
 
 export default router;
