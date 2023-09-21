@@ -33,6 +33,10 @@ import TicketStatuses from "./TicketStatuses";
 import Ticket from "./Ticket";
 import TicketAssignees from "./TicketAssignees";
 import TicketReason from "./TicketReason";
+import EmployeeAllowance from "./EmployeeAllowance";
+import PayrollItem from "./PayrollItem";
+import EmployeeDeduction from "./EmployeeDeduction";
+import Payroll from "./Payroll";
 
 // User relationships
 User.belongsToMany(Role, {
@@ -339,6 +343,23 @@ Client.belongsToMany(Service, {
 
 Ticket.belongsTo(TicketReason, { as: "reason", foreignKey: "reasonId" });
 
+//! Payroll Relationships
+
+PayrollItem.hasMany(EmployeeAllowance, {
+  as: "allowances",
+  foreignKey: "payrollItemId",
+});
+
+PayrollItem.hasMany(EmployeeDeduction, {
+  as: "deductions",
+  foreignKey: "payrollItemId",
+});
+
+Payroll.hasMany(PayrollItem, {
+  as: "payrollItems",
+  foreignKey: "payrollId",
+});
+
 export {
   Account,
   Address,
@@ -372,4 +393,7 @@ export {
   Ticket,
   TicketStatus,
   TicketStatuses,
+  EmployeeAllowance,
+  EmployeeDeduction,
+  PayrollItem,
 };
