@@ -651,6 +651,42 @@ export const getClientsReport = async (
   response.json(reportData);
 };
 
+export const getClientsCount = async (
+  request: AuthRequest,
+  response: Response
+) => {
+  const { from, to }: { from?: string; to?: string } = request.query;
+  try {
+    let clientsCount;
+
+    if (!from || !to) {
+      // If either from or to is missing, return the whole count
+      clientsCount = await Client.count();
+    } else {
+      // If both from and to are provided, use the where clause
+      if (isAfter(new Date(from), new Date(to))) {
+        const message = `La fecha de inicio no puede estar después de la fecha final !`;
+        response.status(422).json({ message });
+        return;
+      }
+
+      clientsCount = await Client.count({
+        where: {
+          createdAt: {
+            [Op.between]: [from, to],
+          },
+        },
+      });
+    }
+
+    clientsCount = clientsCount || 0;
+
+    response.status(200).json({ count: clientsCount });
+  } catch (error) {
+    response.status(500).json(error);
+  }
+};
+
 export default {
   createClient,
   getAllClients,
@@ -658,4 +694,5 @@ export default {
   updateClient,
   deleteClient,
   getClientsReport,
+  getClientsCount,
 };

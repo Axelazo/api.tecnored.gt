@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { RoleInterface } from "../ts/interfaces/app-interfaces";
-import DashboardController from "../controllers/DashboardController";
-import Auth from "../middleware/auth";
+import EmployeeAllowancesController from "../controllers/EmployeeAllowancesController";
+import EmployeeDeductionController from "../controllers/EmployeeDeductionController";
+import ClientController from "../controllers/ClientController";
 
 const allowedRoles: RoleInterface[] = [
   {
@@ -13,10 +14,15 @@ const allowedRoles: RoleInterface[] = [
 const router: Router = Router();
 
 router.get(
-  "/",
-  Auth.authenticate,
-  Auth.checkRoles(allowedRoles),
-  DashboardController.getDashboardData
+  "/employees/allowances/amount",
+  EmployeeAllowancesController.getAllEmployeesAllowancesAmount
 );
+
+router.get(
+  "/employees/deductions/amount",
+  EmployeeDeductionController.getAllEmployeesDeductionsAmount
+);
+
+router.get("/clients/count", ClientController.getClientsCount);
 
 export default router;
