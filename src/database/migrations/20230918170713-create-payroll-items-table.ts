@@ -25,17 +25,25 @@ module.exports = {
         allowNull: false,
         type: DataTypes.FLOAT,
       },
-      allowances: {
+      allowancesAmount: {
         allowNull: false,
         type: DataTypes.FLOAT,
       },
-      deductions: {
+      deductionsAmount: {
         allowNull: false,
         type: DataTypes.FLOAT,
       },
       net: {
         allowNull: false,
         type: DataTypes.FLOAT,
+      },
+      employeeId: {
+        allowNull: false,
+        type: DataTypes.INTEGER,
+        references: {
+          model: "employees",
+          key: "id",
+        },
       },
       createdAt: {
         type: DataTypes.DATE,

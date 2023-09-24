@@ -5,9 +5,13 @@ import {
   CreationOptional,
   DataTypes,
   ForeignKey,
+  NonAttribute,
 } from "sequelize";
 import { sequelize } from "./index";
 import Payroll from "./Payroll";
+import Employee from "./Employee";
+import EmployeeAllowance from "./EmployeeAllowance";
+import EmployeeDeduction from "./EmployeeDeduction";
 
 class PayrollItem extends Model<
   InferAttributes<PayrollItem>,
@@ -17,12 +21,16 @@ class PayrollItem extends Model<
   declare payrollId: ForeignKey<Payroll["id"]>;
   declare month: string;
   declare salary: number;
-  declare allowances: number;
-  declare deductions: number;
+  declare allowancesAmount: number;
+  declare deductionsAmount: number;
   declare net: number;
+  declare employeeId: ForeignKey<Employee["id"]>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
+
+  declare employeeAllowances: NonAttribute<EmployeeAllowance[]>;
+  declare employeeDeductions: NonAttribute<EmployeeDeduction[]>;
 }
 
 PayrollItem.init(
@@ -50,17 +58,25 @@ PayrollItem.init(
       allowNull: false,
       type: DataTypes.FLOAT,
     },
-    allowances: {
+    allowancesAmount: {
       allowNull: false,
       type: DataTypes.FLOAT,
     },
-    deductions: {
+    deductionsAmount: {
       allowNull: false,
       type: DataTypes.FLOAT,
     },
     net: {
       allowNull: false,
       type: DataTypes.FLOAT,
+    },
+    employeeId: {
+      allowNull: false,
+      type: DataTypes.INTEGER,
+      references: {
+        model: Employee,
+        key: "id",
+      },
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
