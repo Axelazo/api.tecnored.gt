@@ -11,7 +11,11 @@ const allowedRoles: RoleInterface[] = [
 
 const router: Router = Router();
 router.post("/create", EmployeeDeductionController.createEmployeeDeduction);
-router.get("/", EmployeeDeductionController.getAllEmployeeDeductions);
+router.get("/:id", EmployeeDeductionController.getAllEmployeeDeductions);
+router.get(
+  "/amount",
+  EmployeeDeductionController.getAllEmployeesDeductionsAmount
+);
 router.delete(
   "/delete/:id",
   EmployeeDeductionController.deleteEmployeeDeduction

@@ -11,7 +11,11 @@ const allowedRoles: RoleInterface[] = [
 
 const router: Router = Router();
 router.post("/create", EmployeeAllowancesController.createEmployeeAllowance);
-router.get("/", EmployeeAllowancesController.getAllEmployeeAllowances);
+router.get("/:id", EmployeeAllowancesController.getAllEmployeeAllowances);
+router.get(
+  "/amount",
+  EmployeeAllowancesController.getAllEmployeesAllowancesAmount
+);
 router.delete(
   "/delete/:id",
   EmployeeAllowancesController.deleteEmployeeAllowance

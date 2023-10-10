@@ -4,8 +4,10 @@ import {
   InferCreationAttributes,
   CreationOptional,
   DataTypes,
+  NonAttribute,
 } from "sequelize";
 import { sequelize } from "./index";
+import PayrollItem from "./PayrollItem";
 
 class Payroll extends Model<
   InferAttributes<Payroll>,
@@ -18,6 +20,8 @@ class Payroll extends Model<
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
+
+  declare items: NonAttribute<PayrollItem[]>;
 }
 
 Payroll.init(

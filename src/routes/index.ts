@@ -10,7 +10,7 @@ import allowancesRoutes from "./allowances";
 import deductionsRoutes from "./deductions";
 import employeeAllowancesRoutes from "./employeeAllowances";
 import employeeDeductionsRoutes from "./employeeDeductions";
-import catalogue from "./catalogue";
+import payrollsRoutes from "./payrolls";
 import authRoutes from "./auth";
 import mockRoutes from "./mock";
 
@@ -27,6 +27,7 @@ router.use("/routers", routerRoutes);
 router.use(authRoutes);
 
 // allowances, deductions routes
+router.use("/payrolls", payrollsRoutes);
 router.use("/allowances", allowancesRoutes);
 router.use("/deductions", deductionsRoutes);
 router.use("/allowances/employees", employeeAllowancesRoutes);

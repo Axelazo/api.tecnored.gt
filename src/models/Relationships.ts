@@ -33,8 +33,10 @@ import TicketStatuses from "./TicketStatuses";
 import Ticket from "./Ticket";
 import TicketAssignees from "./TicketAssignees";
 import TicketReason from "./TicketReason";
+import Allowance from "./Allowance";
 import EmployeeAllowance from "./EmployeeAllowance";
 import PayrollItem from "./PayrollItem";
+import Deduction from "./Deduction";
 import EmployeeDeduction from "./EmployeeDeduction";
 import Payroll from "./Payroll";
 
@@ -355,9 +357,26 @@ PayrollItem.hasMany(EmployeeDeduction, {
   foreignKey: "payrollItemId",
 });
 
+PayrollItem.belongsTo(Employee, {
+  as: "employee",
+  foreignKey: "employeeId",
+});
+
 Payroll.hasMany(PayrollItem, {
-  as: "payrollItems",
+  as: "items",
   foreignKey: "payrollId",
+});
+
+Allowance.hasMany(EmployeeAllowance);
+EmployeeAllowance.belongsTo(Allowance, {
+  as: "allowance",
+  foreignKey: "allowanceId",
+});
+
+Deduction.hasMany(EmployeeDeduction);
+EmployeeDeduction.belongsTo(Deduction, {
+  as: "deduction",
+  foreignKey: "deductionId",
 });
 
 export {
@@ -396,4 +415,6 @@ export {
   EmployeeAllowance,
   EmployeeDeduction,
   PayrollItem,
+  Allowance,
+  Deduction,
 };

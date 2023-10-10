@@ -5,6 +5,7 @@ import {
   CreationOptional,
   DataTypes,
   ForeignKey,
+  NonAttribute,
 } from "sequelize";
 import { sequelize } from "./index";
 import Allowance from "./Allowance";
@@ -21,6 +22,8 @@ class EmployeeAllowance extends Model<
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
+
+  declare allowance: NonAttribute<Allowance>;
 }
 
 EmployeeAllowance.init(

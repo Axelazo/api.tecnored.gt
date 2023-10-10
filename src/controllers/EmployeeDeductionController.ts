@@ -3,8 +3,7 @@ import { AuthRequest } from "../ts/interfaces/app-interfaces";
 import { sequelize } from "../models";
 import { Transaction } from "sequelize";
 import PayrollItem from "../models/PayrollItem";
-import Deduction from "../models/Deduction";
-import EmployeeDeduction from "../models/EmployeeDeduction";
+import { Deduction, EmployeeDeduction } from "../models/Relationships";
 import Employee from "../models/Employee";
 import { isAfter } from "date-fns";
 import { Op } from "sequelize";
@@ -107,17 +106,11 @@ export const getAllEmployeeDeductions = async (
   request: AuthRequest,
   response: Response
 ) => {
-  const { employeeId }: { employeeId?: number } = request.params;
-  const { from, to }: { from: string; to: string } = request.body;
+  const { id }: { id?: number } = request.params;
+  const { from, to }: { from?: string; to?: string } = request.query;
 
-  if (!employeeId) {
+  if (!id) {
     const message = `El empleado es requerido!`;
-    response.status(422).json({ message });
-    return;
-  }
-
-  if (isAfter(new Date(from), new Date(to))) {
-    const message = `La fecha de inicio no puede estar después de la fecha final !`;
     response.status(422).json({ message });
     return;
   }
@@ -125,7 +118,7 @@ export const getAllEmployeeDeductions = async (
   try {
     const employeeExists = Employee.findOne({
       where: {
-        id: employeeId,
+        id,
       },
     });
 
@@ -137,7 +130,7 @@ export const getAllEmployeeDeductions = async (
 
     const mostRecentPayrollItemWithEmployeeId = await PayrollItem.findOne({
       where: {
-        employeeId,
+        id,
       },
       include: [
         {
@@ -149,23 +142,33 @@ export const getAllEmployeeDeductions = async (
               as: "deduction",
             },
           ],
-          where: {
-            createdAt: {
-              [Op.between]: [from, to],
-            },
-          },
         },
       ],
       order: [["createdAt", "DESC"]],
     });
 
-    if (
-      mostRecentPayrollItemWithEmployeeId &&
-      mostRecentPayrollItemWithEmployeeId.employeeDeductions.length > 0
-    ) {
-      response
-        .status(200)
-        .json({ data: mostRecentPayrollItemWithEmployeeId.employeeDeductions });
+    if (!mostRecentPayrollItemWithEmployeeId) {
+      return response
+        .status(404)
+        .json({ message: "No se ha encontrado ninguna penalización!" });
+    }
+
+    if (mostRecentPayrollItemWithEmployeeId.deductions.length > 0) {
+      const formattedDeductions =
+        mostRecentPayrollItemWithEmployeeId.deductions.map(
+          (employeeDeductions) => {
+            return {
+              id: employeeDeductions.id,
+              amount: employeeDeductions.amount,
+              description: employeeDeductions.deduction?.description,
+              type: "deduction",
+              createdAt: employeeDeductions.createdAt,
+              updatedAt: employeeDeductions.updatedAt,
+              deletedAt: employeeDeductions.deletedAt,
+            };
+          }
+        );
+      return response.status(200).json({ data: formattedDeductions });
     } else {
       response
         .status(204)
@@ -181,7 +184,12 @@ export const getAllEmployeesDeductionsAmount = async (
   request: AuthRequest,
   response: Response
 ) => {
-  const { from, to }: { from: string; to: string } = request.body;
+  const { from, to }: { from?: string; to?: string } = request.query;
+
+  if (!from || !to) {
+    const message = `Las fechas de inicio y de final son requeridas!`;
+    return response.status(409).json({ message });
+  }
 
   if (isAfter(new Date(from), new Date(to))) {
     const message = `La fecha de inicio no puede estar después de la fecha final !`;

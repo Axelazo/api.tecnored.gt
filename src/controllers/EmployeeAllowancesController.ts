@@ -3,8 +3,7 @@ import { AuthRequest } from "../ts/interfaces/app-interfaces";
 import { sequelize } from "../models";
 import { Transaction } from "sequelize";
 import PayrollItem from "../models/PayrollItem";
-import Allowance from "../models/Allowance";
-import EmployeeAllowance from "../models/EmployeeAllowance";
+import { Allowance, EmployeeAllowance } from "../models/Relationships";
 import Employee from "../models/Employee";
 import { isAfter } from "date-fns";
 import { Op } from "sequelize";
@@ -107,17 +106,11 @@ export const getAllEmployeeAllowances = async (
   request: AuthRequest,
   response: Response
 ) => {
-  const { employeeId }: { employeeId?: number } = request.params;
-  const { from, to }: { from: string; to: string } = request.body;
+  const { id }: { id?: number } = request.params;
+  const { from, to }: { from?: string; to?: string } = request.query;
 
-  if (!employeeId) {
+  if (!id) {
     const message = `El empleado es requerido!`;
-    response.status(422).json({ message });
-    return;
-  }
-
-  if (isAfter(new Date(from), new Date(to))) {
-    const message = `La fecha de inicio no puede estar después de la fecha final !`;
     response.status(422).json({ message });
     return;
   }
@@ -125,7 +118,7 @@ export const getAllEmployeeAllowances = async (
   try {
     const employeeExists = Employee.findOne({
       where: {
-        id: employeeId,
+        id,
       },
     });
 
@@ -137,7 +130,7 @@ export const getAllEmployeeAllowances = async (
 
     const mostRecentPayrollItemWithEmployeeId = await PayrollItem.findOne({
       where: {
-        employeeId,
+        employeeId: id,
       },
       include: [
         {
@@ -149,23 +142,33 @@ export const getAllEmployeeAllowances = async (
               as: "allowance",
             },
           ],
-          where: {
-            createdAt: {
-              [Op.between]: [from, to],
-            },
-          },
         },
       ],
       order: [["createdAt", "DESC"]],
     });
 
-    if (
-      mostRecentPayrollItemWithEmployeeId &&
-      mostRecentPayrollItemWithEmployeeId.employeeAllowances.length > 0
-    ) {
-      response
-        .status(200)
-        .json({ data: mostRecentPayrollItemWithEmployeeId.employeeAllowances });
+    if (!mostRecentPayrollItemWithEmployeeId) {
+      return response
+        .status(404)
+        .json({ message: "No se ha encontrado ninguna bonificación!" });
+    }
+
+    if (mostRecentPayrollItemWithEmployeeId.allowances.length > 0) {
+      const formattedAllowances =
+        mostRecentPayrollItemWithEmployeeId.allowances.map(
+          (employeeAllowance) => {
+            return {
+              id: employeeAllowance.id,
+              amount: employeeAllowance.amount,
+              description: employeeAllowance.allowance?.description,
+              type: "allowance",
+              createdAt: employeeAllowance.createdAt,
+              updatedAt: employeeAllowance.updatedAt,
+              deletedAt: employeeAllowance.deletedAt,
+            };
+          }
+        );
+      return response.status(200).json({ data: formattedAllowances });
     } else {
       response
         .status(204)

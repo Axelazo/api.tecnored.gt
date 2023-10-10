@@ -5,6 +5,7 @@ import {
   CreationOptional,
   DataTypes,
   ForeignKey,
+  NonAttribute,
 } from "sequelize";
 import { sequelize } from "./index";
 import PayrollItem from "./PayrollItem";
@@ -21,6 +22,8 @@ class EmployeeDeduction extends Model<
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
+
+  declare deduction: NonAttribute<Deduction>;
 }
 
 EmployeeDeduction.init(
@@ -57,7 +60,7 @@ EmployeeDeduction.init(
     deletedAt: DataTypes.DATE,
   },
   {
-    tableName: "employeeAllowances",
+    tableName: "employeeDeductions",
     sequelize,
   }
 );
