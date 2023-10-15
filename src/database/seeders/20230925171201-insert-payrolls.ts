@@ -1,4 +1,4 @@
-import { QueryInterface } from "sequelize";
+/* import { QueryInterface } from "sequelize";
 import { addMonths, startOfDay, endOfMonth } from "date-fns";
 
 module.exports = {
@@ -22,6 +22,34 @@ module.exports = {
     }
 
     return Promise.all([queryInterface.bulkInsert("payrolls", payrolls)]);
+  },
+
+  down: async (queryInterface: QueryInterface): Promise<number | object> => {
+    return Promise.all([queryInterface.bulkDelete("payrolls", {}, {})]);
+  },
+};
+ */
+
+import { QueryInterface } from "sequelize";
+import { startOfDay, endOfDay, endOfMonth, startOfMonth } from "date-fns";
+
+module.exports = {
+  up: async (queryInterface: QueryInterface): Promise<number | object> => {
+    const currentDate = new Date();
+    const currentMonthStartDate = startOfDay(startOfMonth(currentDate));
+    const currentMonthEndDate = endOfDay(endOfMonth(currentDate));
+
+    const initialPayroll = [
+      {
+        from: currentMonthStartDate,
+        to: currentMonthEndDate,
+        status: 1,
+        createdAt: currentMonthStartDate,
+        updatedAt: currentMonthStartDate,
+      },
+    ];
+
+    return Promise.all([queryInterface.bulkInsert("payrolls", initialPayroll)]);
   },
 
   down: async (queryInterface: QueryInterface): Promise<number | object> => {
