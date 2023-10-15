@@ -29,6 +29,7 @@ class PayrollItem extends Model<
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
 
+  declare employee: NonAttribute<Employee>;
   declare allowances: NonAttribute<EmployeeAllowance[]>;
   declare deductions: NonAttribute<EmployeeDeduction[]>;
 }

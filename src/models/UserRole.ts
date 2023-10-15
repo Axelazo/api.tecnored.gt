@@ -7,25 +7,22 @@ import {
   ForeignKey,
 } from "sequelize";
 import { sequelize } from "./index";
-import Employee from "./Employee";
+import User from "./User";
+import Role from "./Role";
 
-class Salary extends Model<
-  InferAttributes<Salary>,
-  InferCreationAttributes<Salary>
+class UserRole extends Model<
+  InferAttributes<UserRole>,
+  InferCreationAttributes<UserRole>
 > {
   declare id: CreationOptional<number>;
-  declare amount: number;
-  declare employeeId: ForeignKey<Employee["id"]>;
-  declare start: CreationOptional<Date>;
-  declare end: CreationOptional<Date>;
-
-  // timestamps!
+  declare userId: ForeignKey<User["id"]>;
+  declare roleId: ForeignKey<Role["id"]>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare deletedAt: CreationOptional<Date>;
 }
 
-Salary.init(
+UserRole.init(
   {
     id: {
       allowNull: false,
@@ -34,35 +31,31 @@ Salary.init(
       type: DataTypes.INTEGER,
       unique: true,
     },
-    amount: {
-      allowNull: false,
-      type: DataTypes.STRING,
-    },
-    employeeId: {
+
+    userId: {
       allowNull: false,
       type: DataTypes.INTEGER,
       references: {
-        model: Employee,
+        model: User,
         key: "id",
       },
     },
-    start: {
+    roleId: {
       allowNull: false,
-      type: DataTypes.DATE,
-    },
-    end: {
-      allowNull: true,
-      type: DataTypes.DATE,
+      type: DataTypes.INTEGER,
+      references: {
+        model: Role,
+        key: "id",
+      },
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
     deletedAt: DataTypes.DATE,
   },
-
   {
-    tableName: "salaries",
+    tableName: "usersRoles",
     sequelize,
   }
 );
 
-export default Salary;
+export default UserRole;

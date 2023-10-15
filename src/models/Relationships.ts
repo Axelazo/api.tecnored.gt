@@ -39,6 +39,7 @@ import PayrollItem from "./PayrollItem";
 import Deduction from "./Deduction";
 import EmployeeDeduction from "./EmployeeDeduction";
 import Payroll from "./Payroll";
+import Salary from "./Salary";
 
 // User relationships
 User.belongsToMany(Role, {
@@ -51,6 +52,16 @@ Role.belongsToMany(User, {
   through: "usersRoles",
   as: "users",
   foreignKey: "roleId",
+});
+
+Employee.hasOne(User, {
+  as: "user",
+  foreignKey: "employeeId",
+});
+
+User.belongsTo(Employee, {
+  as: "employee",
+  foreignKey: "employeeId",
 });
 
 // Person relationships
@@ -379,6 +390,10 @@ EmployeeDeduction.belongsTo(Deduction, {
   foreignKey: "deductionId",
 });
 
+Employee.hasMany(Salary, { foreignKey: "employeeId", as: "salaries" });
+
+Salary.belongsTo(Employee, { foreignKey: "employeeId", as: "salary" });
+
 export {
   Account,
   Address,
@@ -417,4 +432,5 @@ export {
   PayrollItem,
   Allowance,
   Deduction,
+  Salary,
 };

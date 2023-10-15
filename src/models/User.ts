@@ -8,12 +8,14 @@ import {
   NonAttribute,
   DataTypes,
   HasManySetAssociationsMixin,
+  ForeignKey,
 } from "sequelize";
 import bcrypt from "bcrypt";
 import auth from "../config/auth";
 
 import { sequelize } from "./index";
 import Role from "./Role";
+import Employee from "./Employee";
 
 // 'projects' is excluded as it's not an attribute, it's an association.
 class User extends Model<
@@ -26,6 +28,7 @@ class User extends Model<
   declare lastNames: string; // for nullable fields
   declare email: string;
   declare password: string;
+  declare employeeId: ForeignKey<Employee["id"]>; // Note this is optional since it's only populated when explicitly requested in code
 
   // timestamps!
   // createdAt can be undefined during creation
@@ -43,6 +46,7 @@ class User extends Model<
   // You can also pre-declare possible inclusions, these will only be populated if you
   // actively include a relation.
   declare roles?: NonAttribute<Role[]>; // Note this is optional since it's only populated when explicitly requested in code
+  declare employee?: NonAttribute<Employee>; // Note this is optional since it's only populated when explicitly requested in code
 
   declare static associations: {
     projects: Association<User, Role>;

@@ -13,6 +13,7 @@ import {
 import { sequelize } from "./index";
 import Person from "./Person";
 import Account from "./Account";
+import Salary from "./Salary";
 
 class Employee extends Model<
   InferAttributes<Employee>,
@@ -33,6 +34,8 @@ class Employee extends Model<
 
   declare setPerson: HasOneSetAssociationMixin<Person, number>;
   declare getPerson: HasOneGetAssociationMixin<Person>;
+
+  declare salaries: NonAttribute<Salary[]>;
 
   declare static associations: {
     person: Association<Employee, Person>;
