@@ -16,7 +16,11 @@ import Phone from "../models/Phone";
 import Dpi from "../models/Dpi";
 import Department from "../models/Department";
 import Municipality from "../models/Municipality";
-import { generateUniqueNumber } from "../utils/generation";
+import {
+  capitalizeFirstLetter,
+  generateCorporateEmail,
+  generateUniqueNumber,
+} from "../utils/generation";
 import Salary from "../models/Salary";
 import Account from "../models/Account";
 import Establishment from "../models/Establishment";
@@ -24,6 +28,12 @@ import Position from "../models/Position";
 import Area from "../models/Area";
 import Bank from "../models/Bank";
 import EmployeePositionMapping from "../models/EmployeePositionMapping";
+import User from "../models/User";
+import UserRole from "../models/UserRole";
+import Payroll from "../models/Payroll";
+import PayrollItem from "../models/PayrollItem";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 // TODO: Implement validation, delete sensitive fields,
 export const createEmployee = async (
@@ -268,6 +278,60 @@ export const createEmployee = async (
           establishmentId: employee.establishment,
           areaId: employee.area,
           positionId: employee.position,
+        },
+        { transaction: t }
+      );
+
+      const emailAccountName = generateCorporateEmail(
+        employee.firstNames,
+        employee.lastNames
+      );
+
+      const newEmployeeUser = await User.create(
+        {
+          firstNames: employee.firstNames,
+          lastNames: employee.lastNames,
+          password: "Axelazo123!",
+          email: `${emailAccountName}@tecnored.gt`,
+          employeeId: newEmployee.id,
+        },
+        { transaction: t }
+      );
+
+      const newUserRoles = await UserRole.create(
+        {
+          userId: newEmployeeUser.id,
+          roleId: 4, //hardcoded 4 value
+        },
+        { transaction: t }
+      );
+
+      // Payroll related => Grabs the most recent Payroll entry on the system, and generates a PayrollItem with referencing the Payroll "id" field and the employee
+
+      const mostRecentPayroll = await Payroll.findOne({
+        order: [["createdAt", "DESC"]],
+      });
+
+      if (!mostRecentPayroll) {
+        return response.status(404).json({
+          message: "No se ha encontrado la planilla más reciente",
+        });
+      }
+
+      // Grabs the current month
+      const month = capitalizeFirstLetter(
+        format(mostRecentPayroll.from, "MMMM", { locale: es })
+      );
+
+      const newEmployeePayrollItem = await PayrollItem.create(
+        {
+          month,
+          payrollId: mostRecentPayroll.id,
+          salary: newSalary.amount,
+          allowancesAmount: 0,
+          deductionsAmount: 0,
+          net: newSalary.amount,
+          employeeId: newEmployee.id,
         },
         { transaction: t }
       );

@@ -10,6 +10,7 @@ import {
   Router,
   Location,
   ServicesAddress,
+  ServicesOwners,
 } from "../models/Relationships";
 import TicketAssignees from "../models/TicketAssignees";
 import Employee from "../models/Employee";
@@ -182,29 +183,27 @@ export const getAllTickets = async (
           as: "service",
           include: [
             {
-              model: Client,
-              as: "clients",
-              through: {
-                as: "owners",
-              },
+              model: ServicesOwners,
+              as: "owners",
               include: [
                 {
-                  model: Person,
-                  as: "person",
+                  model: Client,
+                  as: "client",
+                  include: [
+                    {
+                      model: Person,
+                      as: "person",
+                    },
+                  ],
                 },
               ],
             },
           ],
         },
       ],
-      order: [
-        [Sequelize.literal("`statuses->ticketsStatuses`.`createdAt`"), "DESC"],
-      ],
     });
 
-    const ticketsAmount = tickets.length;
-
-    if (ticketsAmount > 0) {
+    if (tickets.length > 0) {
       response.status(200).json({ data: tickets });
     } else {
       response
@@ -295,16 +294,19 @@ export const getTicketById = async (
           as: "service",
           include: [
             {
-              model: Client,
-              as: "clients",
-              through: {
-                as: "owners",
-              },
+              model: ServicesOwners,
+              as: "owners",
               include: [
                 {
-                  model: Person,
-                  as: "person",
-                  include: [{ model: Phone, as: "phones" }],
+                  model: Client,
+                  as: "client",
+                  include: [
+                    {
+                      model: Person,
+                      as: "person",
+                      include: [{ model: Phone, as: "phones" }],
+                    },
+                  ],
                 },
               ],
             },

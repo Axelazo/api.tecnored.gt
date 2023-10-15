@@ -34,6 +34,8 @@ import {
   ServicePlan,
   Person,
   Address,
+  Ticket,
+  TicketStatuses,
 } from "../models/Relationships";
 import { generateUniqueNumber } from "../utils/generation";
 import { isValidIPv4, isIPinRange } from "../utils/ip";
@@ -555,9 +557,106 @@ export const getAllServicesInGeographicArea = async (
   }
 };
 
+export const deleteService = async (
+  request: AuthRequest,
+  response: Response
+) => {
+  const { id } = request.params;
+
+  if (!id) {
+    return response
+      .status(409)
+      .json({ message: "El id del servicio es requerido!" });
+  }
+
+  try {
+    await sequelize.transaction(async (t: Transaction) => {
+      const existingService = await Service.findByPk(id);
+
+      if (!existingService) {
+        response
+          .status(404)
+          .json({ message: "El servicio indicado no existe" });
+        throw new Error("El servicio indicado no existe");
+      }
+
+      // Delete al related data
+      await ServiceStatus.destroy({
+        where: {
+          serviceId: existingService.id,
+        },
+        transaction: t,
+      });
+
+      await ServicesAddress.destroy({
+        where: {
+          serviceId: existingService.id,
+        },
+        transaction: t,
+      });
+
+      await ServicePlan.destroy({
+        where: {
+          serviceId: existingService.id,
+        },
+        transaction: t,
+      });
+
+      await ServicePlanMapping.destroy({
+        where: {
+          serviceId: existingService.id,
+        },
+        transaction: t,
+      });
+
+      await ServicesOwners.destroy({
+        where: {
+          serviceId: existingService.id,
+        },
+        transaction: t,
+      });
+
+      const existingServiceTickets = await Ticket.findAll({
+        where: {
+          serviceId: existingService.id,
+        },
+        transaction: t,
+      });
+
+      existingServiceTickets.map(async (existingServiceTicket) => {
+        const existingServiceStatuses = await TicketStatuses.findAll({
+          where: {
+            ticketId: existingServiceTicket.id,
+          },
+          transaction: t,
+        });
+
+        existingServiceStatuses.map((existingServiceStatus) =>
+          existingServiceStatus.destroy({ transaction: t })
+        );
+
+        existingServiceTicket.destroy({
+          transaction: t,
+        });
+      });
+
+      existingService.destroy({ transaction: t });
+    });
+
+    response.status(200).json({
+      message:
+        "El servicio y su información asociada ha sido eliminado exitosamente",
+    });
+  } catch (error) {
+    console.log(error);
+    response.status(500).json({ message: error });
+  }
+};
+
 export default {
   createServiceForClient,
   getAllServicesOfClient,
   getAllServicesInGeographicArea,
   getServiceWithId,
+  deleteService,
 };
