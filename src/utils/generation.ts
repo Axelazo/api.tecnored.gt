@@ -42,4 +42,20 @@ async function generateUniqueNumber(
   return null;
 }
 
-export { generateUniqueNumber };
+/**
+ * Generates the corporate email with the first name and first last name
+ * @param {string} firstNames - The names of the given employee.
+ * @param {string} lastNames - The last names of the given employee.
+ * @returns {string} - The generated corporate email mailbox string.
+ */
+function generateCorporateEmail(firstNames: string, lastNames: string) {
+  const firstName = firstNames.split(" ")[0].toLowerCase();
+  const lastName = lastNames.split(" ")[0].toLowerCase();
+  return `${firstName}.${lastName}`;
+}
+
+function capitalizeFirstLetter(string: string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+export { generateUniqueNumber, generateCorporateEmail, capitalizeFirstLetter };
