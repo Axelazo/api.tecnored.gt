@@ -11,6 +11,7 @@ const allowedRoles: RoleInterface[] = [
 
 const router: Router = Router();
 router.get("/", PayrollController.getAllPayrolls);
+router.get("/generate/:id", PayrollController.generatePayrollDocument);
 router.get("/:id", PayrollController.getPayrollById);
 
 export default router;

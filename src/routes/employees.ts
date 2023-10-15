@@ -11,6 +11,14 @@ const allowedRoles: RoleInterface[] = [
   { roleName: "operator" },
 ];
 
+const allowedRolesWithWorker: RoleInterface[] = [
+  {
+    roleName: "admin",
+  },
+  { roleName: "operator" },
+  { roleName: "worker" },
+];
+
 const router: Router = Router();
 
 router.get(
@@ -23,7 +31,7 @@ router.get(
 router.get(
   "/:id",
   Auth.authenticate,
-  Auth.checkRoles(allowedRoles),
+  Auth.checkRoles(allowedRolesWithWorker),
   EmployeeController.getEmployeeById
 );
 

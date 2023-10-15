@@ -13,6 +13,8 @@ import employeeDeductionsRoutes from "./employeeDeductions";
 import payrollsRoutes from "./payrolls";
 import authRoutes from "./auth";
 import mockRoutes from "./mock";
+import catalogueRoutes from "./catalogue";
+import testRoutes from "./test";
 
 const router: Router = express.Router();
 
@@ -33,7 +35,13 @@ router.use("/deductions", deductionsRoutes);
 router.use("/allowances/employees", employeeAllowancesRoutes);
 router.use("/deductions/employees", employeeDeductionsRoutes);
 
+// catalogue routes
+router.use(catalogueRoutes);
+
 // Mock routes
 router.use("/mock", mockRoutes);
+
+// Test route
+router.use("/test", testRoutes);
 
 export default router;
