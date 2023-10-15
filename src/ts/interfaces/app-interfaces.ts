@@ -79,7 +79,7 @@ export interface EmployeeAPI extends PersonAPI {
   establishment: number;
   area: number;
   position: number;
-  salary: string;
+  salary: number;
   birthday: Date;
   email: string;
 }
