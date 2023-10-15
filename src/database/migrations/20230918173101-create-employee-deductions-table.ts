@@ -13,7 +13,7 @@ module.exports = {
         allowNull: false,
         type: DataTypes.INTEGER,
         references: {
-          model: "allowances",
+          model: "deductions",
           key: "id",
         },
       },
