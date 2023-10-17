@@ -8,6 +8,7 @@ import {
   EmployeeDeduction,
   PayrollItem,
   Person,
+  Salary,
   Service,
   ServicesOwners,
   Ticket,
@@ -79,42 +80,14 @@ export const testEndpointForDevelopmentPurposes = async (
  */
 
   try {
-    const tickets = await Ticket.findAll({
+    const employee = await Employee.findOne({
+      where: {
+        id: 1,
+      },
       include: [
-        { model: TicketReason, as: "reason" },
         {
-          model: TicketStatus,
-          as: "statuses",
-          through: {
-            as: "ticketsStatuses",
-          },
-        },
-        {
-          model: Employee,
-          as: "assignees",
-          include: [{ model: Person, as: "person" }],
-        },
-        {
-          model: Service,
-          as: "service",
-          include: [
-            {
-              model: ServicesOwners,
-              as: "owners",
-              include: [
-                {
-                  model: Client,
-                  as: "client",
-                  include: [
-                    {
-                      model: Person,
-                      as: "person",
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
+          model: Salary,
+          as: "salaries",
         },
       ],
     });
@@ -134,7 +107,7 @@ export const testEndpointForDevelopmentPurposes = async (
       ],
     }); */
     response.status(200).json({
-      data: tickets,
+      data: employee,
     });
   } catch (error) {
     console.log(error);

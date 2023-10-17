@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import { startOfMonth } from "date-fns";
 import { QueryInterface } from "sequelize";
 
 const hash = bcrypt.hashSync("password", 10);
@@ -47,6 +48,8 @@ const employees = [
       employeeNumber: 14772707,
       profileUrl:
         "http://localhost:4000/public/905437f6-3a8a-4ee1-a57f-c5d1d60a0405-img-20190526-wa0084~2.jpg",
+      createdAt: startOfMonth(new Date()),
+      updatedAt: startOfMonth(new Date()),
     },
     salary: {
       employeeId: 1,
@@ -108,6 +111,8 @@ const employees = [
       employeeNumber: 13768305,
       profileUrl:
         "http://localhost:4000/public/905437f6-3a8a-4ee1-a57f-c5d1d60a0405-img-20190526-wa0084~2.jpg",
+      createdAt: startOfMonth(new Date()),
+      updatedAt: startOfMonth(new Date()),
     },
     salary: {
       employeeId: 2,
@@ -124,6 +129,72 @@ const employees = [
       establishmentId: 1,
       areaId: 2,
       positionId: 4,
+    },
+  },
+  {
+    user: {
+      firstNames: "Empleado Ejemplo",
+      lastNames: "Para Serborrado",
+      email: "empleado.ejemplo@tecnored.gt",
+      password: hash,
+      employeeId: 3,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    person: {
+      firstNames: "Empleado Ejemplo",
+      lastNames: "Para Serborrado",
+      birthday: new Date("2006-01-12"),
+      email: "anthonybarrientos@gmail.com",
+      nitNumber: "30542560",
+    },
+    address: {
+      personId: 4,
+      type: 1,
+      street: "Calle de la Cancha Intergol ",
+      locality: "Barrio San Isidro",
+      departmentId: 12,
+      municipalityId: 150,
+      zipCode: "17005",
+    },
+    dpi: {
+      personId: 4,
+      number: 1234987694318,
+      dpiFrontUrl:
+        "http://localhost:4000/public/bbaf83b5-7f4e-4b27-ae4b-be7f7853ee7e-img-20230320-wa0038.jpg",
+      dpiBackUrl:
+        "http://localhost:4000/public/0d96c69d-539c-4cf7-80b7-6e0253aeb68f-img-20230320-wa0038.jpg",
+    },
+    phones: [
+      { personId: 4, type: "Teléfono", number: "12359876" },
+      { personId: 4, type: "Celular", number: "56783467" },
+    ],
+    employee: {
+      personId: 4,
+      employeeNumber: 13768305,
+      profileUrl:
+        "http://localhost:4000/public/905437f6-3a8a-4ee1-a57f-c5d1d60a0405-img-20190526-wa0084~2.jpg",
+      createdAt: new Date("2023-01-01"),
+      updatedAt: new Date("2023-01-01"),
+    },
+    salary: {
+      employeeId: 3,
+      amount: 4500,
+      start: new Date("2023-01-01"),
+      createdAt: new Date("2023-01-01"),
+    },
+    account: {
+      employeeId: 3,
+      number: "666666",
+      bankId: 2,
+      createdAt: new Date("2023-01-01"),
+    },
+    employeePositionMappings: {
+      employeeId: 3,
+      establishmentId: 1,
+      areaId: 2,
+      positionId: 4,
+      createdAt: new Date("2023-01-01"),
     },
   },
 ];
@@ -193,8 +264,6 @@ module.exports = {
           [
             {
               ...sampleEmployee.employee,
-              createdAt: new Date(),
-              updatedAt: new Date(),
             },
           ],
           { transaction }
@@ -205,8 +274,6 @@ module.exports = {
           [
             {
               ...sampleEmployee.salary,
-              createdAt: new Date(),
-              updatedAt: new Date(),
             },
           ],
           { transaction }
@@ -241,6 +308,8 @@ module.exports = {
           [
             {
               ...sampleEmployee.user,
+              createdAt: new Date(),
+              updatedAt: new Date(),
             },
           ],
           { transaction }
@@ -252,6 +321,8 @@ module.exports = {
             {
               roleId: 4, //hardcoded 4 worker value
               userId: sampleEmployee.user.employeeId + 1,
+              createdAt: new Date(),
+              updatedAt: new Date(),
             },
           ],
           { transaction }

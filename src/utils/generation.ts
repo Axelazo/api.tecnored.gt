@@ -18,7 +18,7 @@ async function generateUniqueNumber(
     // Step 1: Retrieve the current count of records
     const recordCount = await model.count();
 
-    // Step 2: Generate a random number
+    /*     // Step 2: Generate a random number
     const random = randomInt(
       Math.pow(10, numberLength - 1),
       Math.pow(10, numberLength) - 1
@@ -27,7 +27,13 @@ async function generateUniqueNumber(
     // Step 3: Combine the record count and the random number
     number = parseInt(
       recordCount.toString().padStart(numberLength, "0") + random
-    ).toString();
+    ).toString(); */
+
+    // Step 2: Generate a random number with 8 digits
+    const random = randomInt(10000000, 99999999); // Range for 8-digit numbers
+
+    // Step 3: Combine the record count and the random number
+    number = random.toString().slice(0, 8);
 
     // Step 4: Check for collisions
     const existingRecord = await model.findOne({ where: { [field]: number } });

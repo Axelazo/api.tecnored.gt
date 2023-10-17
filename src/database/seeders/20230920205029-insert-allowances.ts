@@ -5,6 +5,11 @@ module.exports = {
     return Promise.all([
       queryInterface.bulkInsert("allowances", [
         {
+          description: "Ajuste",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
           description: "Incentivo de Ventas",
           createdAt: new Date(),
           updatedAt: new Date(),

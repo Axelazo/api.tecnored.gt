@@ -5,6 +5,11 @@ module.exports = {
     return Promise.all([
       queryInterface.bulkInsert("deductions", [
         {
+          description: "Ajuste",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
           description: "Inasistencia sin justificación",
           createdAt: new Date(),
           updatedAt: new Date(),

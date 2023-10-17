@@ -43,6 +43,17 @@ module.exports = {
           createdAt: currentMonthStartDate,
           updatedAt: currentMonthStartDate,
         },
+        {
+          payrollId: 1,
+          month: month,
+          salary: 4500,
+          allowancesAmount: 0,
+          deductionsAmount: 0,
+          net: 4500,
+          employeeId: 3,
+          createdAt: currentMonthStartDate,
+          updatedAt: currentMonthStartDate,
+        },
       ]),
     ]);
   },

@@ -16,7 +16,15 @@ import Client from "../models/Client";
 import Phone from "../models/Phone";
 import Department from "../models/Department";
 import Municipality from "../models/Municipality";
-import { isAfter } from "date-fns";
+import {
+  addDays,
+  addMilliseconds,
+  endOfDay,
+  format,
+  isAfter,
+  startOfDay,
+  subMilliseconds,
+} from "date-fns";
 import { generateUniqueNumber } from "../utils/generation";
 
 // TODO: Implement validation, delete sensitive fields,
@@ -659,29 +667,44 @@ export const getClientsCount = async (
   try {
     let clientsCount;
 
+    let fromDate;
+    let toDate;
+
     if (!from || !to) {
       // If either from or to is missing, return the whole count
+      console.log(`I was called! from to missing`);
       clientsCount = await Client.count();
     } else {
       // If both from and to are provided, use the where clause
-      if (isAfter(new Date(from), new Date(to))) {
+      console.log(`I was called! no from and to missing`);
+
+      fromDate = new Date(from);
+      toDate = new Date(to);
+
+      /*       if (isAfter(new Date(from), new Date(to))) {
         const message = `La fecha de inicio no puede estar después de la fecha final !`;
         response.status(422).json({ message });
         return;
-      }
+      } */
 
       clientsCount = await Client.count({
         where: {
           createdAt: {
-            [Op.between]: [from, to],
+            [Op.between]: [startOfDay(fromDate), endOfDay(addDays(toDate, 1))],
           },
+        },
+        logging(sql, timing) {
+          console.log(sql);
         },
       });
     }
 
     clientsCount = clientsCount || 0;
-
-    response.status(200).json({ count: clientsCount });
+    response.status(200).json({
+      count: clientsCount,
+      from: startOfDay(fromDate || new Date()),
+      to: addMilliseconds(endOfDay(toDate || new Date()), 1),
+    });
   } catch (error) {
     response.status(500).json(error);
   }

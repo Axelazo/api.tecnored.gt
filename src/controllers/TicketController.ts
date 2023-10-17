@@ -108,7 +108,7 @@ export const createTicketForService = async (
         throw Error("El servicio indicado no existe");
       }
 
-      const existingEmployee = await Employee.findByPk(serviceId);
+      const existingEmployee = await Employee.findByPk(employeeId);
 
       if (!existingEmployee) {
         throw Error("El empleado indicado no existe");

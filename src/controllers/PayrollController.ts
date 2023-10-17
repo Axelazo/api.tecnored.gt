@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
-import { AuthRequest } from "../ts/interfaces/app-interfaces";
-import { sequelize } from "../models";
-import { Transaction } from "sequelize";
+import {
+  AuthRequest,
+  IProcessedPayroll,
+} from "../ts/interfaces/app-interfaces";
 import Payroll from "../models/Payroll";
 import {
   EmployeeAllowance,
@@ -15,15 +16,14 @@ import {
   endOfMonth,
   format,
   getYear,
-  isSameDay,
-  startOfMonth,
 } from "date-fns";
 import { es } from "date-fns/locale";
 import { capitalizeFirstLetter } from "../utils/generation";
 import Salary from "../models/Salary";
 import * as htmlToPdf from "html-pdf-node-ts";
-import * as sgMail from "@sendgrid/mail";
-import { MailDataRequired, MailService } from "@sendgrid/mail";
+
+import ProcessedPayroll from "../models/ProcessedPayroll";
+import { mergeProcessedPayrolls } from "../utils/misc";
 
 export const getAllPayrolls = async (
   request: AuthRequest,
@@ -196,6 +196,39 @@ export const generatePayrollDocument = async (
     ],
   });
 
+  const existingProcessedPayroll = await ProcessedPayroll.findOne({
+    where: {
+      payrollId: id,
+    },
+  });
+
+  let existingPayrollData: IProcessedPayroll = {
+    payrollId: 0,
+    net: 0,
+    month: "",
+    period: "",
+    sum: 0,
+    allowances: 0,
+    deductions: 0,
+    employees: [],
+  };
+
+  const newPayrollData: IProcessedPayroll = {
+    payrollId: 0,
+    net: 0,
+    month: "",
+    period: "",
+    sum: 0,
+    allowances: 0,
+    deductions: 0,
+    employees: [],
+  };
+
+  if (existingProcessedPayroll) {
+    // payroll exists, data needs to be retrieved and added
+    existingPayrollData = JSON.parse(existingProcessedPayroll.data);
+  }
+
   let net = 0;
   let allowances = 0;
   let deductions = 0;
@@ -203,6 +236,16 @@ export const generatePayrollDocument = async (
   if (!payroll) {
     return response.status(404).json({ message: "No existe la planilla" });
   }
+
+  const month = capitalizeFirstLetter(
+    format(payroll.from, "MMMM", { locale: es })
+  );
+
+  const period = `${format(payroll.from, "dd/MM/yyyy")} al ${format(
+    payroll.to,
+    "dd/MM/yyyy"
+  )}`;
+
   payroll.items?.map((item) => {
     net += item.net;
 
@@ -214,14 +257,6 @@ export const generatePayrollDocument = async (
       deductions += employeeDeduction.amount;
     });
   });
-
-  const month = capitalizeFirstLetter(
-    format(payroll.from, "MMMM", { locale: es })
-  );
-  const period = `${format(payroll.from, "dd/MM/yyyy")} al ${format(
-    payroll.to,
-    "dd/MM/yyyy"
-  )}`;
 
   const payrollItems = payroll.items.map((item, index) => {
     let allowancesAmount = 0;
@@ -249,6 +284,18 @@ export const generatePayrollDocument = async (
     );
     salary = dailySalary * daysUntilEndOfMonth;
 
+    newPayrollData.employees?.push({
+      id: item.employee.id,
+      firstNames: item.employee.person?.firstNames,
+      lastNames: item.employee.person?.lastNames,
+      salary,
+      allowances: allowancesAmount,
+      deductions: deductionsAmount,
+      from: format(item.employee.createdAt, "dd-MM-yyyy"),
+      to: format(endOfMonth(item.employee.createdAt), "dd-MM-yyyy"),
+      deleted: false,
+    });
+
     return {
       index: index + 1,
       firstNames: item.employee.person?.firstNames,
@@ -258,6 +305,30 @@ export const generatePayrollDocument = async (
       deductionsAmount,
     };
   });
+
+  // New data for processed payroll
+  newPayrollData.payrollId = payroll.id;
+  newPayrollData.month = month;
+  newPayrollData.period = period;
+
+  newPayrollData.net = net;
+  newPayrollData.sum = net + allowances - deductions;
+  newPayrollData.allowances = allowances;
+  newPayrollData.deductions = deductions;
+
+  const data = mergeProcessedPayrolls(newPayrollData, existingPayrollData);
+
+  // If no existing processed payroll, create it
+  if (!existingProcessedPayroll) {
+    const newProcessedPayroll = await ProcessedPayroll.create({
+      payrollId: 1,
+      data: JSON.stringify(data),
+    });
+  } else {
+    // Merge existing records
+    existingProcessedPayroll.data = JSON.stringify(data);
+    existingProcessedPayroll.save();
+  }
 
   const htmlTemplate = `<!DOCTYPE html>
   <html lang="en">
@@ -321,23 +392,23 @@ export const generatePayrollDocument = async (
           <table>
             <tr>
               <td><b>Periodo:</b></td>
-              <td>${month} - ${period}</td>
+              <td>${data.month} - ${data.period}</td>
             </tr>
             <tr>
               <td><b>Total de Sueldos:</b></td>
-              <td>Q${net}</td>
+              <td>Q${data.net}</td>
             </tr>
             <tr>
               <td><b>Total de Bonificaciones:</b></td>
-              <td>Q${allowances}</td>
+              <td>Q${data.allowances}</td>
             </tr>
             <tr>
               <td><b>Total de Penalizaciones:</b></td>
-              <td>Q${deductions}</td>
+              <td>Q${data.deductions}</td>
             </tr>
             <tr>
               <td><b>Monto total a pagar:</b></td>
-              <td>Q${net + allowances - deductions}</td>
+              <td>Q${data.sum}</td>
             </tr>
           </table>
         </div>
@@ -350,14 +421,14 @@ export const generatePayrollDocument = async (
             <th>Bonificaciones</th>
             <th>Penalizaciones</th>
           </tr>
-          ${payrollItems.map((item) => {
+          ${data.employees?.map((item) => {
             return `          <tr>
-              <td>${item.index}</td>
+              <td>${item.id}</td>
               <td>${item.firstNames}</td>
-              <td>${item.lastNames}</td>
-              <td>Q${item.mostRecentSalary}</td>
-              <td>Q${item.allowancesAmount}</td>
-              <td>Q${item.deductionsAmount}</td>
+              <td>${item.lastNames} ${item.deleted ? "*" : ""}</td>
+              <td>Q${item.salary}</td>
+              <td>Q${item.allowances}</td>
+              <td>Q${item.deductions}</td>
             </tr>`;
           })}
         </table>
@@ -389,7 +460,10 @@ export const generatePayrollDocument = async (
 
   const filename = `PlanillaMensual-${month}-${getYear(currentDate)}.pdf`;
 
-  response.setHeader("Content-Disposition", `attachment; filename="asdf.pdf"`);
+  response.setHeader(
+    "Content-Disposition",
+    `attachment; filename="${filename}.pdf"`
+  );
   response.setHeader("Content-Type", "application/pdf");
 
   const file = { content: htmlTemplate };
@@ -400,26 +474,7 @@ export const generatePayrollDocument = async (
       landscape: true,
     });
 
-    /*     
-    const msg: MailDataRequired = {
-      to: "herdezx+1@gmail.com",
-      from: "herdezx@gmail.com", // Use the email address or domain you verified above
-      subject: "Sending with Twilio SendGrid is Fun",
-      text: "and easy to do anywhere, even with Node.js",
-      html: "<strong>and easy to do anywhere, even with Node.js</strong>",
-      attachments: [
-        {
-          filename: `invoice`,
-          content: pdfBuffer.toString(),
-          type: "application/pdf",
-          disposition: "attachment",
-        },
-      ],
-    };
-    
-
-    await sgMail.send(msg); */
-    const mailService = new MailService();
+    /*     const mailService = new MailService();
 
     if (process.env.SENDGRID_API_KEY) {
       mailService.setApiKey(process.env.SENDGRID_API_KEY);
@@ -439,7 +494,7 @@ export const generatePayrollDocument = async (
           disposition: "attachment",
         },
       ],
-    };
+    }; */
 
     /*     await mailService.send(msg);
      */

@@ -1,5 +1,28 @@
 import { Request } from "express";
 
+export interface IProcessedPayroll {
+  payrollId: number;
+  month: string;
+  period: string;
+  net: number;
+  allowances: number;
+  deductions: number;
+  sum: number;
+  employees?: ProcessedPayrollEmployeeEntry[];
+}
+
+export interface ProcessedPayrollEmployeeEntry {
+  id: number;
+  firstNames: string | undefined;
+  lastNames: string | undefined;
+  salary: number;
+  allowances: number;
+  deductions: number;
+  from: string | Date;
+  to: string | Date;
+  deleted?: boolean;
+}
+
 export interface AuthRequest extends Request {
   user?: UserInterface;
   roles?: RoleInterface[];

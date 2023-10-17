@@ -39,6 +39,7 @@ import {
 } from "../models/Relationships";
 import { generateUniqueNumber } from "../utils/generation";
 import { isValidIPv4, isIPinRange } from "../utils/ip";
+import TicketAssignees from "../models/TicketAssignees";
 
 export const createServiceForClient = async (
   request: AuthRequest,
@@ -277,7 +278,7 @@ export const createServiceForClient = async (
       );
 
       response.status(200).json({
-        id: newService.dataValues.id,
+        id: client.id,
       });
     });
   } catch (error) {
@@ -574,10 +575,9 @@ export const deleteService = async (
       const existingService = await Service.findByPk(id);
 
       if (!existingService) {
-        response
+        return response
           .status(404)
           .json({ message: "El servicio indicado no existe" });
-        throw new Error("El servicio indicado no existe");
       }
 
       // Delete al related data
@@ -587,6 +587,22 @@ export const deleteService = async (
         },
         transaction: t,
       });
+
+      const existingServiceAdress = await ServicesAddress.findOne({
+        where: {
+          serviceId: existingService.id,
+        },
+        transaction: t,
+      });
+
+      if (existingServiceAdress) {
+        await Location.destroy({
+          where: {
+            addressId: existingServiceAdress.id,
+          },
+          transaction: t,
+        });
+      }
 
       await ServicesAddress.destroy({
         where: {
@@ -623,24 +639,30 @@ export const deleteService = async (
         transaction: t,
       });
 
-      existingServiceTickets.map(async (existingServiceTicket) => {
-        const existingServiceStatuses = await TicketStatuses.findAll({
+      for (const existingServiceTicket of existingServiceTickets) {
+        await TicketStatuses.destroy({
           where: {
             ticketId: existingServiceTicket.id,
           },
           transaction: t,
         });
 
-        existingServiceStatuses.map((existingServiceStatus) =>
-          existingServiceStatus.destroy({ transaction: t })
-        );
-
-        existingServiceTicket.destroy({
+        await TicketAssignees.destroy({
+          where: {
+            ticketId: existingServiceTicket.id,
+          },
           transaction: t,
         });
+      }
+
+      await Ticket.destroy({
+        where: {
+          serviceId: existingService.id,
+        },
+        transaction: t,
       });
 
-      existingService.destroy({ transaction: t });
+      await existingService.destroy({ transaction: t });
     });
 
     response.status(200).json({

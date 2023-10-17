@@ -8,6 +8,8 @@ import {
   PhoneAPI,
   DpiAPI,
   EmployeeAPI,
+  IProcessedPayroll,
+  ProcessedPayrollEmployeeEntry,
 } from "../ts/interfaces/app-interfaces";
 import Employee from "../models/Employee";
 import Person from "../models/Person";
@@ -32,8 +34,12 @@ import User from "../models/User";
 import UserRole from "../models/UserRole";
 import Payroll from "../models/Payroll";
 import PayrollItem from "../models/PayrollItem";
-import { format } from "date-fns";
+import { differenceInCalendarDays, format, startOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
+import EmployeeAllowance from "../models/EmployeeAllowance";
+import EmployeeDeduction from "../models/EmployeeDeduction";
+import ProcessedPayroll from "../models/ProcessedPayroll";
+import { mergeProcessedPayrolls } from "../utils/misc";
 
 // TODO: Implement validation, delete sensitive fields,
 export const createEmployee = async (
@@ -626,7 +632,6 @@ export const updateEmployee = async (
       });
 
       if (existingDpi) {
-        console.log(existingDpi);
         return response.status(409).json({
           message: "El DPI ya está en uso!",
         });
@@ -725,8 +730,6 @@ export const updateEmployee = async (
         },
       });
 
-      console.log(existingAddress);
-
       if (!existingAddress) {
         const message = `No se ha encontrado la direccion del cliente`;
         response.status(404).json({ message });
@@ -770,7 +773,15 @@ export const deleteEmployee = async (
     const { id } = request.params;
 
     sequelize.transaction(async (t: Transaction) => {
-      const existingEmployee = await Employee.findByPk(id);
+      const existingEmployee = await Employee.findByPk(id, {
+        include: [
+          {
+            model: Person,
+            as: "person",
+          },
+        ],
+        transaction: t,
+      });
 
       if (!existingEmployee) {
         return response.status(404).json({
@@ -805,6 +816,226 @@ export const deleteEmployee = async (
       // Delete Account
       await Account.destroy({
         where: { employeeId: existingEmployee.id },
+        transaction: t,
+      });
+
+      await EmployeePositionMapping.destroy({
+        where: {
+          employeeId: existingEmployee.id,
+        },
+        transaction: t,
+      });
+
+      // Delete user and roles related to this Employee
+      const existingEmployeeUser = await User.findOne({
+        where: {
+          employeeId: existingEmployee.id,
+        },
+        transaction: t,
+      });
+
+      if (!existingEmployeeUser) {
+        return response.status(200).json({
+          message: "El usuario del empleado no existe!",
+        });
+      }
+
+      await UserRole.destroy({
+        where: {
+          userId: existingEmployeeUser.id,
+        },
+        transaction: t,
+      });
+
+      await existingEmployeeUser.destroy({ transaction: t });
+
+      // Before deleting everything related to the Payroll, we need to do some things to reflect the Employee in the Payroll even if his deleted (fired)
+      // We need to:
+      // Retrieve the most recent ProcessedPayroll entry
+      // Calculate the payment that needs to be done to the Employee at the end of the month
+      // Insert the data of the ProcessedPayroll with, net, sum, allowances
+      const currentDate = new Date();
+      const existingPayroll = await Payroll.findOne({
+        order: [["createdAt", "DESC"]],
+        transaction: t,
+      });
+
+      // If for some odd FUCKING reason the  Processed Payroll doesn't exist, we return an error
+      if (!existingPayroll) {
+        return response
+          .status(404)
+          .json({ message: "La Planilla no ha sido encontrada" });
+      }
+
+      const existingProcessedPayroll = await ProcessedPayroll.findOne({
+        order: [["createdAt", "DESC"]],
+        transaction: t,
+      });
+
+      // If for some odd FUCKING reason the  Processed Payroll doesn't exist, we return an error
+      if (!existingProcessedPayroll) {
+        return response
+          .status(404)
+          .json({ message: "La Planilla Procesada no ha sido encontrada" });
+      }
+
+      // If the payroll has been "processed" in this context, downloaded, it will have data, so we need to retrieve the existing data, empty or not
+      let existingPayrollData: IProcessedPayroll = {
+        payrollId: 0,
+        net: 0,
+        month: "",
+        period: "",
+        sum: 0,
+        allowances: 0,
+        deductions: 0,
+        employees: [],
+      };
+
+      const newPayrollData: IProcessedPayroll = {
+        payrollId: 0,
+        net: 0,
+        month: "",
+        period: "",
+        sum: 0,
+        allowances: 0,
+        deductions: 0,
+        employees: [],
+      };
+
+      if (existingProcessedPayroll) {
+        // payroll exists, data needs to be retrieved and added
+        existingPayrollData = JSON.parse(existingProcessedPayroll.data);
+      }
+
+      let net = 0;
+      let allowances = 0;
+      let deductions = 0;
+
+      const month = capitalizeFirstLetter(
+        format(existingPayroll.from, "MMMM", { locale: es })
+      );
+      const period = `${format(existingPayroll.from, "dd/MM/yyyy")} al ${format(
+        existingPayroll.to,
+        "dd/MM/yyyy"
+      )}`;
+
+      const existingPayrollItem = await PayrollItem.findOne({
+        where: {
+          payrollId: existingPayroll.id,
+        },
+        include: [
+          {
+            model: Employee,
+            as: "employee",
+            include: [
+              {
+                model: Salary,
+                as: "salaries",
+              },
+            ],
+          },
+        ],
+        transaction: t,
+      });
+
+      console.log(existingPayrollItem?.employeeId);
+
+      const salaries = await Salary.findAll({
+        where: {
+          employeeId: existingPayrollItem?.employeeId,
+        },
+      });
+
+      // For some ODD FUCKING reason Payroll Item doesn't exist
+      if (!existingPayrollItem) {
+        return response
+          .status(404)
+          .json({ message: "La Item de la Planilla no ha sido encontrado" });
+      }
+
+      net += existingPayrollItem.net;
+
+      existingPayrollItem.allowances?.map((employeeAllowance) => {
+        allowances += employeeAllowance.amount;
+      });
+
+      existingPayrollItem.deductions?.map((employeeDeduction) => {
+        deductions += employeeDeduction.amount;
+      });
+
+      // Logic to calculate how much to pay to that fuck
+      let salary = 0;
+
+      const monthlySalary = salaries[0].amount;
+
+      console.log(monthlySalary);
+
+      const dailySalary = monthlySalary / 30;
+      const daysFromStartOfMonth = Math.abs(
+        differenceInCalendarDays(existingPayrollItem.createdAt, currentDate)
+      );
+      salary = dailySalary * daysFromStartOfMonth;
+
+      const employeePayrollEntry: ProcessedPayrollEmployeeEntry = {
+        id: existingEmployee.id,
+        firstNames: existingEmployee.person?.firstNames,
+        lastNames: existingEmployee.person?.lastNames,
+        salary: salary,
+        allowances,
+        deductions,
+        from: format(startOfMonth(currentDate), "dd-MM-yyyy"),
+        to: format(currentDate, "dd-MM-yyyy"),
+        deleted: true,
+      };
+
+      newPayrollData.month = month;
+      newPayrollData.period = period;
+      newPayrollData.employees?.push(employeePayrollEntry);
+
+      const data = mergeProcessedPayrolls(newPayrollData, existingPayrollData);
+
+      // If no existing processed payroll, create it
+      if (!existingProcessedPayroll) {
+        const newProcessedPayroll = await ProcessedPayroll.create({
+          payrollId: 1,
+          data: JSON.stringify(data),
+        });
+      } else {
+        // Merge existing records
+        existingProcessedPayroll.data = JSON.stringify(data);
+        existingProcessedPayroll.save({
+          transaction: t,
+        });
+      }
+
+      // Delete payroll related to this Employee
+      const existingPayrollItems = await PayrollItem.findAll({
+        where: {
+          employeeId: existingEmployee.id,
+        },
+        transaction: t,
+      });
+
+      for (const existingPayrollItem of existingPayrollItems) {
+        await EmployeeAllowance.destroy({
+          where: {
+            payrollItemId: existingPayrollItem.id,
+          },
+          transaction: t,
+        });
+
+        await EmployeeDeduction.destroy({
+          where: {
+            payrollItemId: existingPayrollItem.id,
+          },
+          transaction: t,
+        });
+      }
+
+      await PayrollItem.destroy({
+        where: {
+          employeeId: existingEmployee.id,
+        },
         transaction: t,
       });
 
