@@ -3,7 +3,7 @@ import { QueryInterface } from "sequelize";
 module.exports = {
   up: (queryInterface: QueryInterface): Promise<number | object> => {
     return Promise.all([
-      queryInterface.bulkInsert("usersroles", [
+      queryInterface.bulkInsert("usersRoles", [
         {
           userId: 1,
           roleId: 1,
@@ -15,6 +15,6 @@ module.exports = {
   },
 
   down: (queryInterface: QueryInterface): Promise<number | object> => {
-    return Promise.all([queryInterface.bulkDelete("usersroles", {}, {})]);
+    return Promise.all([queryInterface.bulkDelete("usersRoles", {}, {})]);
   },
 };
