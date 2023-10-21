@@ -22,7 +22,7 @@ module.exports = {
         allowNull: true,
         type: DataTypes.INTEGER,
         references: {
-          model: "servicesaddresses",
+          model: "servicesAddresses",
           key: "id",
         },
       },

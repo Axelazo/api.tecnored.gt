@@ -2,7 +2,7 @@ import { QueryInterface, DataTypes } from "sequelize";
 
 module.exports = {
   up: (queryInterface: QueryInterface): Promise<void> =>
-    queryInterface.createTable("servicesaddresses", {
+    queryInterface.createTable("servicesAddresses", {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -62,5 +62,5 @@ module.exports = {
     }),
 
   down: (queryInterface: QueryInterface): Promise<void> =>
-    queryInterface.dropTable("servicesaddresses"),
+    queryInterface.dropTable("servicesAddresses"),
 };

@@ -52,7 +52,7 @@ ServicePlan.init(
     deletedAt: DataTypes.DATE,
   },
   {
-    tableName: "serviceplans",
+    tableName: "servicepPlans",
     sequelize,
   }
 );

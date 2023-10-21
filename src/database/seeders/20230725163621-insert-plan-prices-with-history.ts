@@ -4,7 +4,7 @@ import subYears from "date-fns/subYears";
 module.exports = {
   up: (queryInterface: QueryInterface): Promise<number | object> => {
     return Promise.all([
-      queryInterface.bulkInsert("planprices", [
+      queryInterface.bulkInsert("planPrices", [
         {
           price: 100.0,
           start: new Date(),
@@ -45,6 +45,6 @@ module.exports = {
   },
 
   down: (queryInterface: QueryInterface): Promise<number | object> => {
-    return Promise.all([queryInterface.bulkDelete("planprices", {}, {})]);
+    return Promise.all([queryInterface.bulkDelete("planPrices", {}, {})]);
   },
 };

@@ -55,7 +55,7 @@ ServiceStatus.init(
     deletedAt: DataTypes.DATE,
   },
   {
-    tableName: "servicestatuses",
+    tableName: "serviceStatuses",
     sequelize,
   }
 );

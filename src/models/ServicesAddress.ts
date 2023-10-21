@@ -89,7 +89,7 @@ ServicesAddress.init(
     deletedAt: DataTypes.DATE,
   },
   {
-    tableName: "servicesaddresses",
+    tableName: "servicesAddresses",
     sequelize,
   }
 );
