@@ -5,7 +5,7 @@ import cors from "cors";
 import morgan from "morgan";
 import removeUnusedDpiImages from "./tasks/removeUnusedDpiImages";
 import { sequelize } from "./models/index";
-import * as path from "path";
+import processMonthlyPayroll from "./tasks/processMonthlyPayroll";
 
 dotenv.config({ path: __dirname + "/.env" });
 
@@ -21,7 +21,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(morgan("combined"));
 //Routes
 app.use(router);
-app.use("/public", express.static(path.join(__dirname, "/public/")));
 
 app.listen(port, () => {
   console.log(
@@ -31,6 +30,7 @@ app.listen(port, () => {
   sequelize.authenticate().then(() => {
     console.log(`[server]: ⚡️ TecnoRedMS API - Database is connected!`);
     removeUnusedDpiImages();
+    processMonthlyPayroll();
   });
 });
 

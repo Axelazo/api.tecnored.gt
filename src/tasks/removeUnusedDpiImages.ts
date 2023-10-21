@@ -4,7 +4,7 @@ import path from "path";
 import Person from "../models/Person";
 import Dpi from "../models/Dpi";
 
-const directory = path.join(__dirname, "../public/");
+const directory = path.join(__dirname, "../protected/images/");
 
 /**
  *
@@ -14,7 +14,7 @@ const directory = path.join(__dirname, "../public/");
  *
  **/
 export default function removeUnusedDpiImages() {
-  const urlPrefix = `http://localhost:4000/public/`;
+  const urlPrefix = `http://localhost:4000/protected/images/`;
   cron.schedule("0 0 28-31 * *", async () => {
     const today = new Date();
     const lastDayOfMonth = new Date(

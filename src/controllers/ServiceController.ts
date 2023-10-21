@@ -483,8 +483,6 @@ export const getAllServicesInGeographicArea = async (
   try {
     const { south, west, north, east } = request.query;
 
-    console.log(`Request query is: ` + request.query);
-
     if (!south || !west || !north || !east) {
       return response
         .status(409)
@@ -663,11 +661,11 @@ export const deleteService = async (
       });
 
       await existingService.destroy({ transaction: t });
-    });
 
-    response.status(200).json({
-      message:
-        "El servicio y su información asociada ha sido eliminado exitosamente",
+      response.status(200).json({
+        message:
+          "El servicio y su información asociada ha sido eliminado exitosamente",
+      });
     });
   } catch (error) {
     console.log(error);

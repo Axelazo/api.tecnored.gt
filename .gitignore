@@ -43,6 +43,10 @@ build
 public/
 src/public
 
+#protected folder
+protected/
+src/protected
+
 # Dependency directories
 node_modules/
 jspm_packages/

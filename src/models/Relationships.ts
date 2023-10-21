@@ -433,4 +433,5 @@ export {
   Allowance,
   Deduction,
   Salary,
+  Payroll,
 };

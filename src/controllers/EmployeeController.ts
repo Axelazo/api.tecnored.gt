@@ -41,6 +41,8 @@ import EmployeeDeduction from "../models/EmployeeDeduction";
 import ProcessedPayroll from "../models/ProcessedPayroll";
 import { mergeProcessedPayrolls } from "../utils/misc";
 
+const protectedDirectory = `/protected/images/`;
+
 // TODO: Implement validation, delete sensitive fields,
 export const createEmployee = async (
   request: AuthRequest,
@@ -129,18 +131,18 @@ export const createEmployee = async (
           if (Array.isArray(file)) {
             for (const f of file) {
               if (f.fieldname === "dpiFront") {
-                dpiFrontUrl = `${url}/public/${f.filename}`;
+                dpiFrontUrl = `${url}${protectedDirectory}${f.filename}`;
               } else if (f.fieldname === "dpiBack") {
-                dpiBackUrl = `${url}/public/${f.filename}`;
+                dpiBackUrl = `${url}${protectedDirectory}${f.filename}`;
               } else if (f.fieldname === "profilePicture") {
-                profilePicture = `${url}/public/${f.filename}`;
+                profilePicture = `${url}${protectedDirectory}${f.filename}`;
               }
             }
           } else {
             if (file.fieldname === "dpiFront") {
-              dpiFrontUrl = `${url}/public/${file.filename}`;
+              dpiFrontUrl = `${url}${protectedDirectory}${file.filename}`;
             } else if (file.fieldname === "dpiBack") {
-              dpiBackUrl = `${url}/public/${file.filename}`;
+              dpiBackUrl = `${url}${protectedDirectory}${file.filename}`;
             }
           }
         }
@@ -531,7 +533,12 @@ export const updateEmployee = async (
             model: Person,
             as: "person",
           },
+          {
+            model: Salary,
+            as: "salaries",
+          },
         ],
+        transaction: t,
       });
 
       if (!existingEmployee) {
@@ -591,18 +598,18 @@ export const updateEmployee = async (
           if (Array.isArray(file)) {
             for (const f of file) {
               if (f.fieldname === "dpiFront") {
-                dpiFrontUrl = `${url}/public/${f.filename}`;
+                dpiFrontUrl = `${url}${protectedDirectory}${f.filename}`;
               } else if (f.fieldname === "dpiBack") {
-                dpiBackUrl = `${url}/public/${f.filename}`;
+                dpiBackUrl = `${url}${protectedDirectory}${f.filename}`;
               } else if (f.fieldname === "profilePicture") {
-                profilePicture = `${url}/public/${f.filename}`;
+                profilePicture = `${url}${protectedDirectory}${f.filename}`;
               }
             }
           } else {
             if (file.fieldname === "dpiFront") {
-              dpiFrontUrl = `${url}/public/${file.filename}`;
+              dpiFrontUrl = `${url}${protectedDirectory}${file.filename}`;
             } else if (file.fieldname === "dpiBack") {
-              dpiBackUrl = `${url}/public/${file.filename}`;
+              dpiBackUrl = `${url}${protectedDirectory}${file.filename}`;
             }
           }
         }
@@ -667,9 +674,17 @@ export const updateEmployee = async (
       }
 
       const clientDpi = await existingPerson.getDpi();
+
+      console.log(
+        `stringified dpi: ${JSON.stringify(
+          dpi
+        )} and ${dpiFrontUrl} and ${dpiBackUrl}`
+      );
       clientDpi.number = dpi.number;
       clientDpi.dpiFrontUrl = dpiFrontUrl;
       clientDpi.dpiBackUrl = dpiBackUrl;
+
+      clientDpi.save({ transaction: t, hooks: true });
 
       existingPerson.firstNames = employee.firstNames;
       existingPerson.lastNames = employee.lastNames;
@@ -807,12 +822,6 @@ export const deleteEmployee = async (
         transaction: t,
       });
 
-      // Delete Salary
-      await Salary.destroy({
-        where: { employeeId: existingEmployee.id },
-        transaction: t,
-      });
-
       // Delete Account
       await Account.destroy({
         where: { employeeId: existingEmployee.id },
@@ -940,11 +949,24 @@ export const deleteEmployee = async (
 
       console.log(existingPayrollItem?.employeeId);
 
-      const salaries = await Salary.findAll({
+      const salaries = await Salary.findOne({
         where: {
-          employeeId: existingPayrollItem?.employeeId,
+          employeeId: existingEmployee.id,
+        },
+        transaction: t,
+        logging(sql, timing) {
+          console.log(sql);
         },
       });
+
+      // For some ODD FUCKING reason Payroll Item doesn't exist
+      if (!salaries) {
+        return response.status(404).json({
+          message: `El salario para el empleado ${
+            existingEmployee.id
+          } no existe ${JSON.stringify(salaries)}`,
+        });
+      }
 
       // For some ODD FUCKING reason Payroll Item doesn't exist
       if (!existingPayrollItem) {
@@ -966,15 +988,21 @@ export const deleteEmployee = async (
       // Logic to calculate how much to pay to that fuck
       let salary = 0;
 
-      const monthlySalary = salaries[0].amount;
-
-      console.log(monthlySalary);
+      const monthlySalary = salaries?.amount;
 
       const dailySalary = monthlySalary / 30;
       const daysFromStartOfMonth = Math.abs(
         differenceInCalendarDays(existingPayrollItem.createdAt, currentDate)
       );
       salary = dailySalary * daysFromStartOfMonth;
+
+      console.log(`
+      This motherfucker employee salary is: 
+      Monthly - ${monthlySalary}
+      Daily - ${dailySalary}
+      Days worked till deletion ${daysFromStartOfMonth}
+      Multipled Days worked * Daily Salary: ${salary}
+      `);
 
       const employeePayrollEntry: ProcessedPayrollEmployeeEntry = {
         id: existingEmployee.id,
@@ -1039,6 +1067,12 @@ export const deleteEmployee = async (
         transaction: t,
       });
 
+      // Delete Salary
+      await Salary.destroy({
+        where: { employeeId: existingEmployee.id },
+        transaction: t,
+      });
+
       // Delete Employee
       await existingEmployee.destroy({ transaction: t });
 
@@ -1054,6 +1088,7 @@ export const deleteEmployee = async (
     });
   } catch (error) {
     const message = `La transacción falló: Error ${error}`;
+    console.log(error);
     response.status(500).json({
       message,
     });

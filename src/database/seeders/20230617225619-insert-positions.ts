@@ -20,12 +20,17 @@ module.exports = {
           updatedAt: new Date(),
         },
         {
+          name: "Jefe de Servicio al Cliente",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
           name: "Asesor de Sala de Ventas",
           createdAt: new Date(),
           updatedAt: new Date(),
         },
         {
-          name: "Jefe de Servicio al Cliente",
+          name: "Jefe de Sala de Ventas",
           createdAt: new Date(),
           updatedAt: new Date(),
         },

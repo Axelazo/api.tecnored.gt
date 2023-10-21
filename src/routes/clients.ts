@@ -29,10 +29,11 @@ router.get(
 
 router.post(
   "/create",
-  upload.fields([
+  upload.upload.fields([
     { name: "dpiFront", maxCount: 1 },
     { name: "dpiBack", maxCount: 1 },
   ]),
+  upload.uploadMiddleware,
   Auth.authenticate,
   Auth.checkRoles(allowedRoles),
   ClientController.createClient
@@ -47,10 +48,11 @@ router.post(
 
 router.put(
   "/update/:id",
-  upload.fields([
+  upload.upload.fields([
     { name: "dpiFront", maxCount: 1 },
     { name: "dpiBack", maxCount: 1 },
   ]),
+  upload.uploadMiddleware,
   Auth.authenticate,
   Auth.checkRoles(allowedRoles),
   ClientController.updateClient

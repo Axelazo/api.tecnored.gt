@@ -398,7 +398,6 @@ export const deleteTicket = async (
 ) => {
   const { id } = request.params;
 
-  console.log(`${id} is this valueeee!`);
   if (!id) {
     response.status(409).json({ message: "El id del ticket es requerido" });
   }

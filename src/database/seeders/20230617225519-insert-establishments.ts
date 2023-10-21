@@ -5,27 +5,6 @@ module.exports = {
     return Promise.all([
       queryInterface.bulkInsert("establishments", [
         {
-          name: "Dolores",
-          latitude: "16.5075",
-          longitude: "89.4151",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        {
-          name: "Macháquila",
-          latitude: "16.3839",
-          longitude: "89.4435",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        {
-          name: "Calzada Mopán",
-          latitude: "16.7259",
-          longitude: "89.3799",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        {
           name: "San Francisco",
           latitude: "16.7972",
           longitude: "89.9323",

@@ -38,17 +38,18 @@ router.get(
 router.get(
   "/positions/:positionName",
   Auth.authenticate,
-  Auth.checkRoles(allowedRoles),
+  Auth.checkRoles(allowedRolesWithWorker),
   EmployeeController.getAllEmployeesWithPosition
 );
 
 router.post(
   "/create",
-  upload.fields([
+  upload.upload.fields([
     { name: "dpiFront", maxCount: 1 },
     { name: "dpiBack", maxCount: 1 },
     { name: "profilePicture", maxCount: 1 },
   ]),
+  upload.uploadMiddleware,
   Auth.authenticate,
   Auth.checkRoles(allowedRoles),
   EmployeeController.createEmployee
@@ -56,11 +57,12 @@ router.post(
 
 router.put(
   "/update/:id",
-  upload.fields([
+  upload.upload.fields([
     { name: "dpiFront", maxCount: 1 },
     { name: "dpiBack", maxCount: 1 },
     { name: "profilePicture", maxCount: 1 },
   ]),
+  upload.uploadMiddleware,
   Auth.authenticate,
   Auth.checkRoles(allowedRoles),
   EmployeeController.updateEmployee

@@ -44,6 +44,10 @@ export const getAllPayrolls = async (
                   model: Person,
                   as: "person",
                 },
+                {
+                  model: Salary,
+                  as: "salaries",
+                },
               ],
             },
             {
@@ -59,13 +63,45 @@ export const getAllPayrolls = async (
       ],
     });
 
+    const currenDate = new Date();
+
     if (payrolls.length > 0) {
       const formattedPayrolls = payrolls.map((payroll) => {
+        /*         const processedPayroll = await ProcessedPayroll.findOne({
+          where: {
+            id: payroll.id,
+          },
+        }); */
+
+        /*         let existingPayrollData: IProcessedPayroll = {
+          payrollId: 0,
+          net: 0,
+          month: "",
+          period: "",
+          sum: 0,
+          allowances: 0,
+          deductions: 0,
+          employees: [],
+        };
+
+        if (processedPayroll) {
+          existingPayrollData.payrollId = processedPayroll.payrollId;
+        } */
+
         let net = 0;
         let allowances = 0;
         let deductions = 0;
 
         payroll.items?.map((item) => {
+          /*           console.log(item.employee.salaries);
+          const monthlySalary = item.employee.salaries[0].amount;
+          const dailySalary = monthlySalary / 30;
+          const interval = Math.abs(
+            differenceInCalendarDays(item.createdAt, endOfMonth(currenDate))
+          );
+
+          const amountToPayToEndOfMonth = dailySalary * interval; */
+
           net += item.net;
 
           item.allowances?.map((employeeAllowance) => {
@@ -75,6 +111,16 @@ export const getAllPayrolls = async (
           item.deductions?.map((employeeDeduction) => {
             deductions += employeeDeduction.amount;
           });
+        });
+
+        console.log({
+          id: payroll.id,
+          from: payroll.from,
+          to: payroll.to,
+          status: payroll.status,
+          net,
+          allowances,
+          deductions,
         });
 
         return {
@@ -296,6 +342,18 @@ export const generatePayrollDocument = async (
       deleted: false,
     });
 
+    console.log({
+      id: item.employee.id,
+      firstNames: item.employee.person?.firstNames,
+      lastNames: item.employee.person?.lastNames,
+      salary,
+      allowances: allowancesAmount,
+      deductions: deductionsAmount,
+      from: format(item.employee.createdAt, "dd-MM-yyyy"),
+      to: format(endOfMonth(item.employee.createdAt), "dd-MM-yyyy"),
+      deleted: false,
+    });
+
     return {
       index: index + 1,
       firstNames: item.employee.person?.firstNames,
@@ -316,6 +374,8 @@ export const generatePayrollDocument = async (
   newPayrollData.allowances = allowances;
   newPayrollData.deductions = deductions;
 
+  console.log(newPayrollData);
+
   const data = mergeProcessedPayrolls(newPayrollData, existingPayrollData);
 
   // If no existing processed payroll, create it
@@ -326,6 +386,8 @@ export const generatePayrollDocument = async (
     });
   } else {
     // Merge existing records
+    data.allowances = allowances;
+    data.deductions = deductions;
     existingProcessedPayroll.data = JSON.stringify(data);
     existingProcessedPayroll.save();
   }
@@ -474,30 +536,6 @@ export const generatePayrollDocument = async (
       landscape: true,
     });
 
-    /*     const mailService = new MailService();
-
-    if (process.env.SENDGRID_API_KEY) {
-      mailService.setApiKey(process.env.SENDGRID_API_KEY);
-    }
-
-    const msg: MailDataRequired = {
-      to: "herdezx+1@gmail.com",
-      from: "herdezx@gmail.com", // Use the email address or domain you verified above
-      subject: "Sending with Twilio SendGrid is Fun",
-      text: "and easy to do anywhere, even with Node.js",
-      html: "<strong>and easy to do anywhere, even with Node.js</strong>",
-      attachments: [
-        {
-          filename: `invoice`,
-          content: pdfBuffer.toString(),
-          type: "application/pdf",
-          disposition: "attachment",
-        },
-      ],
-    }; */
-
-    /*     await mailService.send(msg);
-     */
     response.send(pdfBuffer);
   } catch (error) {
     console.log(error);

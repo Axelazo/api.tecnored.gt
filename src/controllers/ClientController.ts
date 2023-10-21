@@ -26,6 +26,9 @@ import {
   subMilliseconds,
 } from "date-fns";
 import { generateUniqueNumber } from "../utils/generation";
+import ServicesOwners from "../models/ServicesOwners";
+
+const protectedDirectory = `/protected/images/`;
 
 // TODO: Implement validation, delete sensitive fields,
 export const createClient = async (
@@ -135,16 +138,16 @@ export const createClient = async (
           if (Array.isArray(file)) {
             for (const f of file) {
               if (f.fieldname === "dpiFront") {
-                dpiFrontUrl = `${url}/public/${f.filename}`;
+                dpiFrontUrl = `${url}${protectedDirectory}${f.filename}`;
               } else if (f.fieldname === "dpiBack") {
-                dpiBackUrl = `${url}/public/${f.filename}`;
+                dpiBackUrl = `${url}${protectedDirectory}${f.filename}`;
               }
             }
           } else {
             if (file.fieldname === "dpiFront") {
-              dpiFrontUrl = `${url}/public/${file.filename}`;
+              dpiFrontUrl = `${url}${protectedDirectory}${file.filename}`;
             } else if (file.fieldname === "dpiBack") {
-              dpiBackUrl = `${url}/public/${file.filename}`;
+              dpiBackUrl = `${url}${protectedDirectory}${file.filename}`;
             }
           }
         }
@@ -429,16 +432,16 @@ export const updateClient = async (
           if (Array.isArray(file)) {
             for (const f of file) {
               if (f.fieldname === "dpiFront") {
-                dpiFrontUrl = `${url}/public/${f.filename}`;
+                dpiFrontUrl = `${url}${protectedDirectory}${f.filename}`;
               } else if (f.fieldname === "dpiBack") {
-                dpiBackUrl = `${url}/public/${f.filename}`;
+                dpiBackUrl = `${url}${protectedDirectory}${f.filename}`;
               }
             }
           } else {
             if (file.fieldname === "dpiFront") {
-              dpiFrontUrl = `${url}/public/${file.filename}`;
+              dpiFrontUrl = `${url}${protectedDirectory}${file.filename}`;
             } else if (file.fieldname === "dpiBack") {
-              dpiBackUrl = `${url}/public/${file.filename}`;
+              dpiBackUrl = `${url}${protectedDirectory}${file.filename}`;
             }
           }
         }
@@ -570,6 +573,17 @@ export const deleteClient = async (
         return;
       }
 
+      const ownedServices = await ServicesOwners.findAll({
+        where: {
+          clientId: client.id,
+        },
+      });
+
+      if (ownedServices.length > 0) {
+        const message = `El cliente tiene servicios activos`;
+        return response.status(422).json({ message });
+      }
+
       const person = await client.getPerson();
       const dpi = await person.getDpi();
       const address = await person.getAddress();
@@ -586,6 +600,7 @@ export const deleteClient = async (
       response.status(200).json({ message: "Cliente eliminado exitosamente" });
     });
   } catch (error) {
+    console.log(error);
     const message = `La transacción falló`;
     response.status(500).json({ message });
   }

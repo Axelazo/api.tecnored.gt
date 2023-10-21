@@ -15,6 +15,7 @@ import authRoutes from "./auth";
 import mockRoutes from "./mock";
 import catalogueRoutes from "./catalogue";
 import testRoutes from "./test";
+import imageRoutes from "./image";
 
 const router: Router = express.Router();
 
@@ -43,5 +44,7 @@ router.use("/mock", mockRoutes);
 
 // Test route
 router.use("/test", testRoutes);
+
+router.use(imageRoutes);
 
 export default router;

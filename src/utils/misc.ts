@@ -49,12 +49,12 @@ export function mergeProcessedPayrolls(
 
       if (existingEmployee) {
         if (existingEmployee.deleted) {
-          //
+          //existingEmployee.salary = employee.salary;
         } else {
           // Update existing employee entry
           existingEmployee.salary = employee.salary;
-          existingEmployee.allowances = employee.allowances;
-          existingEmployee.deductions = employee.deductions;
+          /*           existingEmployee.allowances = employee.allowances;
+          existingEmployee.deductions = employee.deductions; */
         }
       } else {
         // Add a new employee entry

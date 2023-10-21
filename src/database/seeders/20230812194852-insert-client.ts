@@ -20,10 +20,8 @@ const sampleClient = {
   dpi: {
     personId: 1,
     number: 3249461711705,
-    dpiFrontUrl:
-      "http://localhost:4000/public/54e4eb17-5329-4a8b-ad65-77831a9f03f8-front.jpeg",
-    dpiBackUrl:
-      "http://localhost:4000/public/a5afcd67-ff82-4b9f-ad6e-0edba9843c22-back.jpeg",
+    dpiFrontUrl: "http://localhost:4000/protected/images/1.jpg",
+    dpiBackUrl: "http://localhost:4000/protected/images/2.jpg",
   },
   phones: [
     { personId: 1, type: "Teléfono", number: "55375950" },

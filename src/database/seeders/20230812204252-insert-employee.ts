@@ -35,9 +35,9 @@ const employees = [
       personId: 2,
       number: 3249461711702,
       dpiFrontUrl:
-        "http://localhost:4000/public/bbaf83b5-7f4e-4b27-ae4b-be7f7853ee7e-img-20230320-wa0038.jpg",
+        "http://localhost:4000/protected/images/bbaf83b5-7f4e-4b27-ae4b-be7f7853ee7e-img-20230320-wa0038.jpg",
       dpiBackUrl:
-        "http://localhost:4000/public/0d96c69d-539c-4cf7-80b7-6e0253aeb68f-img-20230320-wa0038.jpg",
+        "http://localhost:4000/protected/images/0d96c69d-539c-4cf7-80b7-6e0253aeb68f-img-20230320-wa0038.jpg",
     },
     phones: [
       { personId: 2, type: "Teléfono", number: "55375929" },
@@ -47,7 +47,7 @@ const employees = [
       personId: 2,
       employeeNumber: 14772707,
       profileUrl:
-        "http://localhost:4000/public/905437f6-3a8a-4ee1-a57f-c5d1d60a0405-img-20190526-wa0084~2.jpg",
+        "http://localhost:4000/protected/images/905437f6-3a8a-4ee1-a57f-c5d1d60a0405-img-20190526-wa0084~2.jpg",
       createdAt: startOfMonth(new Date()),
       updatedAt: startOfMonth(new Date()),
     },
@@ -98,9 +98,9 @@ const employees = [
       personId: 3,
       number: 1234987694318,
       dpiFrontUrl:
-        "http://localhost:4000/public/bbaf83b5-7f4e-4b27-ae4b-be7f7853ee7e-img-20230320-wa0038.jpg",
+        "http://localhost:4000/protected/images/bbaf83b5-7f4e-4b27-ae4b-be7f7853ee7e-img-20230320-wa0038.jpg",
       dpiBackUrl:
-        "http://localhost:4000/public/0d96c69d-539c-4cf7-80b7-6e0253aeb68f-img-20230320-wa0038.jpg",
+        "http://localhost:4000/protected/images/0d96c69d-539c-4cf7-80b7-6e0253aeb68f-img-20230320-wa0038.jpg",
     },
     phones: [
       { personId: 3, type: "Teléfono", number: "12359876" },
@@ -110,7 +110,7 @@ const employees = [
       personId: 3,
       employeeNumber: 13768305,
       profileUrl:
-        "http://localhost:4000/public/905437f6-3a8a-4ee1-a57f-c5d1d60a0405-img-20190526-wa0084~2.jpg",
+        "http://localhost:4000/protected/images/905437f6-3a8a-4ee1-a57f-c5d1d60a0405-img-20190526-wa0084~2.jpg",
       createdAt: startOfMonth(new Date()),
       updatedAt: startOfMonth(new Date()),
     },
@@ -161,9 +161,9 @@ const employees = [
       personId: 4,
       number: 1234987694318,
       dpiFrontUrl:
-        "http://localhost:4000/public/bbaf83b5-7f4e-4b27-ae4b-be7f7853ee7e-img-20230320-wa0038.jpg",
+        "http://localhost:4000/protected/images/bbaf83b5-7f4e-4b27-ae4b-be7f7853ee7e-img-20230320-wa0038.jpg",
       dpiBackUrl:
-        "http://localhost:4000/public/0d96c69d-539c-4cf7-80b7-6e0253aeb68f-img-20230320-wa0038.jpg",
+        "http://localhost:4000/protected/images/0d96c69d-539c-4cf7-80b7-6e0253aeb68f-img-20230320-wa0038.jpg",
     },
     phones: [
       { personId: 4, type: "Teléfono", number: "12359876" },
@@ -173,7 +173,7 @@ const employees = [
       personId: 4,
       employeeNumber: 13768305,
       profileUrl:
-        "http://localhost:4000/public/905437f6-3a8a-4ee1-a57f-c5d1d60a0405-img-20190526-wa0084~2.jpg",
+        "http://localhost:4000/protected/images/905437f6-3a8a-4ee1-a57f-c5d1d60a0405-img-20190526-wa0084~2.jpg",
       createdAt: new Date("2023-01-01"),
       updatedAt: new Date("2023-01-01"),
     },
