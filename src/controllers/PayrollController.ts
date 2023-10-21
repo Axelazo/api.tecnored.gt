@@ -113,16 +113,6 @@ export const getAllPayrolls = async (
           });
         });
 
-        console.log({
-          id: payroll.id,
-          from: payroll.from,
-          to: payroll.to,
-          status: payroll.status,
-          net,
-          allowances,
-          deductions,
-        });
-
         return {
           id: payroll.id,
           from: payroll.from,
@@ -342,18 +332,6 @@ export const generatePayrollDocument = async (
       deleted: false,
     });
 
-    console.log({
-      id: item.employee.id,
-      firstNames: item.employee.person?.firstNames,
-      lastNames: item.employee.person?.lastNames,
-      salary,
-      allowances: allowancesAmount,
-      deductions: deductionsAmount,
-      from: format(item.employee.createdAt, "dd-MM-yyyy"),
-      to: format(endOfMonth(item.employee.createdAt), "dd-MM-yyyy"),
-      deleted: false,
-    });
-
     return {
       index: index + 1,
       firstNames: item.employee.person?.firstNames,
@@ -373,8 +351,6 @@ export const generatePayrollDocument = async (
   newPayrollData.sum = net + allowances - deductions;
   newPayrollData.allowances = allowances;
   newPayrollData.deductions = deductions;
-
-  console.log(newPayrollData);
 
   const data = mergeProcessedPayrolls(newPayrollData, existingPayrollData);
 
