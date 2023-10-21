@@ -15,7 +15,15 @@ const app: Express = express();
 const port: number = parseInt(<string>process.env.PORT, 10) || 4000;
 
 //Middlewares
-app.use(cors({ origin: ["http://localhost:3000", "http://localhost:5173"] }));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "https://tecnored.gt.dev.axelaguilar.com",
+    ],
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(morgan("combined"));
