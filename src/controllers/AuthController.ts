@@ -4,61 +4,6 @@ import bcrypt from "bcrypt";
 import auth from "../config/auth";
 import { User, Role, Employee } from "../models/Relationships";
 
-/* function signIn(request: Request, response: Response) {
-  const { email, password } = request.body;
-
-  User.findOne({
-    where: {
-      email: email,
-    },
-    include: [
-      {
-        model: Role,
-        as: "roles",
-        through: {
-          attributes: [],
-        },
-      },
-      {
-        model: Employee,
-        as: "employee",
-      },
-    ],
-  })
-    .then((user) => {
-      if (!user) {
-        response.status(400).json({ message: "Usuario no encontrado" });
-      } else {
-        if (bcrypt.compareSync(password, user.password)) {
-          const { id, firstNames, lastNames, email, roles } = user;
-
-          const token = jwt.sign({ user: user }, auth.secret, {
-            expiresIn: auth.expires,
-          });
-
-          response.status(200).json({
-            data: {
-              id,
-              firstNames,
-              lastNames,
-              email,
-              roles,
-              token,
-            },
-          });
-        } else {
-          response
-            .status(401)
-            .json({ message: "Correo electrónico o contraseña incorrecta" });
-        }
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-      response.status(500).json(error);
-    });
-} */
-
 async function signIn(request: Request, response: Response) {
   const { email, password } = request.body;
 
@@ -131,6 +76,7 @@ async function signIn(request: Request, response: Response) {
 }
 
 //Registration for new user
+
 function signUp(request: Request, response: Response) {
   const { firstNames, lastNames, email, password } = request.body;
 
@@ -170,4 +116,48 @@ function signUp(request: Request, response: Response) {
   ]);
 }
 
-export default { signIn, signUp };
+// Updated changePassword function
+/*
+async function changePassword(request: Request, response: Response) {
+  const { currentPassword, newPassword } = request.body;
+  const token = request.headers.authorization;
+
+  if (!token) {
+    return response.status(401).json({ message: "Unauthorized" });
+  }
+
+  try {
+    const decodedToken = jwt.verify(token, auth.secret);
+
+    if (!decodedToken.user || !decodedToken.user.id) {
+      return response.status(401).json({ message: "Invalid token format" });
+    }
+
+    const userId = decodedToken.user.id;
+
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return response.status(404).json({ message: "User not found" });
+    }
+
+    const currentPasswordMatch = await bcrypt.compare(currentPassword, user.password);
+
+    if (!currentPasswordMatch) {
+      return response.status(401).json({ message: "Current password is incorrect" });
+    }
+
+    // Hash the new password before updating it
+    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+
+    // Update the user's password
+    await user.update({ password: newPasswordHash });
+
+    return response.status(200).json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.error(error);
+    return response.status(500).json({ message: "Error changing password" });
+  }
+}
+ */
+export default { signIn, signUp /*changePassword*/ };
