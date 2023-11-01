@@ -154,7 +154,7 @@ export const getAllEmployeeDeductions = async (
     }
 
     if (mostRecentPayrollItemWithEmployeeId.deductions.length > 0) {
-      const formattedDeductions =
+      let formattedDeductions =
         mostRecentPayrollItemWithEmployeeId.deductions.map(
           (employeeDeductions) => {
             return {
@@ -168,6 +168,18 @@ export const getAllEmployeeDeductions = async (
             };
           }
         );
+
+      if (from && to) {
+        formattedDeductions = formattedDeductions.filter((deduction) => {
+          const createdAt = new Date(deduction.createdAt);
+          const fromDate = new Date(from);
+          const toDate = new Date(to);
+          return createdAt >= fromDate && createdAt <= toDate;
+        });
+
+        return response.status(204).json({ data: formattedDeductions });
+      }
+
       return response.status(200).json({ data: formattedDeductions });
     } else {
       response
