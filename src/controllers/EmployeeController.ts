@@ -428,8 +428,20 @@ export const getEmployeeById = async (
   request: AuthRequest,
   response: Response
 ) => {
+  const { id } = request.params;
+
+  if (!id) {
+    return response.status(409).json({
+      message: "El empleado ese requerido",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número",
+    });
+  }
   try {
-    const { id } = request.params;
     const employee = await Employee.findOne({
       where: { id },
       include: [
@@ -490,6 +502,13 @@ export const getEmployeeById = async (
             },
           ],
         },
+      ],
+      order: [
+        [
+          { model: EmployeePositionMapping, as: "employeePositionMapping" },
+          "createdAt",
+          "DESC",
+        ],
       ],
     });
 
@@ -766,6 +785,15 @@ export const updateEmployee = async (
       await existingEmployee.save({ transaction: t, hooks: true });
 
       // TODO Update the mapping table if changed!
+      const newEmployeePositionMapping = await EmployeePositionMapping.create(
+        {
+          employeeId: existingEmployee.id,
+          establishmentId: employee.establishment,
+          areaId: employee.area,
+          positionId: employee.position,
+        },
+        { transaction: t }
+      );
 
       response.status(200).json({
         id: existingEmployee.id,
