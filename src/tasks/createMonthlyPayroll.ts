@@ -17,7 +17,10 @@ import { es } from "date-fns/locale";
  *
  **/
 export default function createMonthlyPayroll() {
-  cron.schedule("5 0 * * *", async () => {
+  cron.schedule("5 0 1-1 * *", async () => {
+    console.log(
+      `[server]: ⚡️ TecnoRedMS API - Succesfully created new payroll`
+    );
     const currentDate = new Date();
     if (!isFirstDayOfMonth(currentDate)) {
       return;
@@ -55,15 +58,18 @@ export default function createMonthlyPayroll() {
         }
 
         for (const existingEmployee of existingEmployees) {
-          const newPayrollItem = await PayrollItem.create({
-            payrollId: newPayroll.id,
-            month,
-            salary: existingEmployee.salaries[0].amount,
-            allowancesAmount: 0,
-            deductionsAmount: 0,
-            net: existingEmployee.salaries[0].amount,
-            employeeId: existingEmployee.id,
-          });
+          const newPayrollItem = await PayrollItem.create(
+            {
+              payrollId: newPayroll.id,
+              month,
+              salary: existingEmployee.salaries[0].amount,
+              allowancesAmount: 0,
+              deductionsAmount: 0,
+              net: existingEmployee.salaries[0].amount,
+              employeeId: existingEmployee.id,
+            },
+            { transaction: t }
+          );
         }
       });
     } catch (error) {

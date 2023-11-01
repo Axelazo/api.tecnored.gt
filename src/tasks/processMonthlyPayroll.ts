@@ -28,7 +28,7 @@ import { es } from "date-fns/locale";
  *
  **/
 export default function processMonthlyPayroll() {
-  cron.schedule("55 23 * * *", async () => {
+  cron.schedule("55 23 28-31 * *", async () => {
     const currentDate = new Date();
     if (!isLastDayOfMonth(currentDate)) {
       return;
@@ -204,7 +204,7 @@ export default function processMonthlyPayroll() {
     // If no existing processed payroll, create it
     if (!existingProcessedPayroll) {
       const newProcessedPayroll = await ProcessedPayroll.create({
-        payrollId: 1,
+        payrollId: mostRecentPayroll.id,
         data: JSON.stringify(data),
       });
     } else {
@@ -212,6 +212,9 @@ export default function processMonthlyPayroll() {
       existingProcessedPayroll.data = JSON.stringify(data);
       existingProcessedPayroll.save();
     }
+
+    mostRecentPayroll.status = 2;
+    mostRecentPayroll.save();
 
     console.log(
       `[server]: ⚡️ TecnoRedMS API - Payroll for ${month} processed succesfully`

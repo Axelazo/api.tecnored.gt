@@ -6,6 +6,7 @@ import morgan from "morgan";
 import removeUnusedDpiImages from "./tasks/removeUnusedDpiImages";
 import { sequelize } from "./models/index";
 import processMonthlyPayroll from "./tasks/processMonthlyPayroll";
+import createMonthlyPayroll from "./tasks/createMonthlyPayroll";
 
 dotenv.config({ path: __dirname + "/.env" });
 
@@ -30,7 +31,7 @@ app.use(morgan("combined"));
 //Routes
 app.use(router);
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(
     `[server]: ⚡️ TecnoRedMS API - API is running at http://localhost:${port}`
   );
@@ -39,9 +40,12 @@ app.listen(port, () => {
     console.log(`[server]: ⚡️ TecnoRedMS API - Database is connected!`);
     removeUnusedDpiImages();
     processMonthlyPayroll();
+    createMonthlyPayroll();
   });
 });
 
 console.log(`[server]: ⚡️ TecnoRedMS API - Starting tasks...`);
 
 console.log(`[server]: ⚡️ TecnoRedMS API - Current date is: ${new Date()}`);
+
+export { app, server };
