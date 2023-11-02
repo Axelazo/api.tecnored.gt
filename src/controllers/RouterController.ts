@@ -94,6 +94,18 @@ export const getRouterById = async (
 ) => {
   const { id } = request.params;
 
+  if (!id) {
+    return response.status(409).json({
+      message: "El id del router es requerido!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número!",
+    });
+  }
+
   try {
     const router = await Router.findByPk(id);
 
@@ -113,6 +125,30 @@ export const updateRouter = async (
 ) => {
   const { name, establishmentId } = request.body;
   const { id } = request.params;
+
+  if (!id) {
+    return response.status(409).json({
+      message: "El id del router es requerido!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número!",
+    });
+  }
+
+  if (!name) {
+    return response.status(409).json({
+      message: "El nombre requerido!",
+    });
+  }
+
+  if (!establishmentId) {
+    return response.status(409).json({
+      message: "El id del establecimiento es requerido!",
+    });
+  }
 
   try {
     sequelize.transaction(async (t: Transaction) => {

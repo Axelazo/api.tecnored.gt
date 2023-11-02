@@ -7,6 +7,19 @@ import Role from "../models/Role";
 // Get one user by ID
 export const getUserById = async (request: AuthRequest, response: Response) => {
   const { id } = request.params;
+
+  if (!id) {
+    return response.status(409).json({
+      message: "El id del usuario es requerido",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número!",
+    });
+  }
+
   User.findByPk(id, {
     include: ["roles"],
   })

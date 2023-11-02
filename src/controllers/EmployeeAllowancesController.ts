@@ -110,7 +110,7 @@ export const getAllEmployeeAllowances = async (
   const { from, to }: { from?: string; to?: string } = request.query;
 
   if (!id) {
-    const message = `El empleado es requerido!`;
+    const message = `El id del empleado es requerido!`;
     response.status(422).json({ message });
     return;
   }
@@ -220,6 +220,18 @@ export const deleteEmployeeAllowance = async (
   response: Response
 ) => {
   const { id } = request.params;
+
+  if (!id) {
+    return response.status(409).json({
+      message: "El id de la bonificación del empleado es requerida!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número!",
+    });
+  }
 
   try {
     sequelize.transaction(async (t: Transaction) => {

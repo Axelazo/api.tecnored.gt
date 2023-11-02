@@ -153,6 +153,18 @@ export const getAllPlans = async (request: AuthRequest, response: Response) => {
 export const getPlanById = async (request: AuthRequest, response: Response) => {
   const { id } = request.params;
 
+  if (!id) {
+    return response.status(409).json({
+      message: "El id del plan es requerido!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número!",
+    });
+  }
+
   try {
     const plan = await Plan.findByPk(id);
 
@@ -200,6 +212,19 @@ export const updatePlan = async (request: AuthRequest, response: Response) => {
 
   const { id } = request.params;
   const planId = id;
+
+  if (!id) {
+    return response.status(409).json({
+      message: "El id del plan es requerido!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número!",
+    });
+  }
+
   try {
     sequelize.transaction(async (t: Transaction) => {
       // Find the plan
@@ -266,6 +291,17 @@ export const updatePlan = async (request: AuthRequest, response: Response) => {
 export const deletePlan = async (request: AuthRequest, response: Response) => {
   const { id } = request.params;
 
+  if (!id) {
+    return response.status(409).json({
+      message: "El id del plan es requerido!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número!",
+    });
+  }
   try {
     const plan = await Plan.findByPk(id);
 

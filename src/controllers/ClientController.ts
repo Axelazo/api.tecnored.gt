@@ -259,8 +259,20 @@ export const getClientById = async (
   request: AuthRequest,
   response: Response
 ) => {
+  const { id } = request.params;
+
+  if (!id) {
+    return response.status(409).json({
+      message: "El id del cliente es requerido!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número",
+    });
+  }
   try {
-    const { id } = request.params;
     const client = await Client.findOne({
       where: { id },
       include: [
@@ -315,6 +327,18 @@ export const updateClient = async (
 ) => {
   const { id } = request.params;
   const url = `${request.protocol}://${request.get("host")}`;
+
+  if (!id) {
+    return response.status(409).json({
+      message: "El id del cliente es requerido!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número",
+    });
+  }
 
   const {
     person,
@@ -543,6 +567,18 @@ export const deleteClient = async (
   response: Response
 ) => {
   const { id } = request.params;
+
+  if (!id) {
+    return response.status(409).json({
+      message: "El id del del cliente es requerido!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número",
+    });
+  }
 
   try {
     await sequelize.transaction(async (t) => {

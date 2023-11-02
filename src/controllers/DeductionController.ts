@@ -73,6 +73,18 @@ export const getDeductionById = async (
 ) => {
   const { id } = request.params;
 
+  if (!id) {
+    return response.status(409).json({
+      message: "La penalización es requerida",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número",
+    });
+  }
+
   try {
     const deduction = await Deduction.findByPk(id);
 
@@ -94,6 +106,23 @@ export const updateDeduction = async (
 ) => {
   const { description } = request.body;
   const { id } = request.params;
+
+  if (!id) {
+    return response.status(409).json({
+      message: "La penalización es requerida!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número!",
+    });
+  }
+
+  if (!description) {
+    response.status(409).json({ message: "La descripción es requerida!" });
+    return;
+  }
 
   try {
     sequelize.transaction(async (t: Transaction) => {
@@ -140,6 +169,18 @@ export const deleteDeduction = async (
   response: Response
 ) => {
   const { id } = request.params;
+
+  if (!id) {
+    return response.status(409).json({
+      message: "El id de la penalización es requerida!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número!",
+    });
+  }
 
   try {
     sequelize.transaction(async (t: Transaction) => {

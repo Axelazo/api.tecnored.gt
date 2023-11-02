@@ -544,6 +544,18 @@ export const updateEmployee = async (
 
   const url = `${request.protocol}://${request.get("host")}`;
 
+  if (!id) {
+    return response.status(409).json({
+      message: "El id del empleado es requerido!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número!",
+    });
+  }
+
   try {
     sequelize.transaction(async (t: Transaction) => {
       const existingEmployee = await Employee.findByPk(id, {
@@ -812,9 +824,20 @@ export const deleteEmployee = async (
   request: AuthRequest,
   response: Response
 ) => {
-  try {
-    const { id } = request.params;
+  const { id } = request.params;
 
+  if (!id) {
+    return response.status(409).json({
+      message: "El id del empleado es requerida!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número!",
+    });
+  }
+  try {
     sequelize.transaction(async (t: Transaction) => {
       const existingEmployee = await Employee.findByPk(id, {
         include: [

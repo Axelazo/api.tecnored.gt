@@ -142,6 +142,18 @@ export const getPayrollById = async (
 ) => {
   const { id } = request.params;
 
+  if (!id) {
+    return response.status(409).json({
+      message: "La planilla es requerida!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número!",
+    });
+  }
+
   try {
     const payroll = await Payroll.findByPk(id, {
       include: [
@@ -189,9 +201,15 @@ export const generatePayrollDocument = async (
   const { id } = request.params;
 
   if (!id) {
-    return response
-      .status(409)
-      .json({ message: "El id de la planilla es requerido" });
+    return response.status(409).json({
+      message: "El id de la planilla es requerida!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número!",
+    });
   }
 
   const currentDate = new Date();

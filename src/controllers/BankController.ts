@@ -51,6 +51,24 @@ export const updateBank = async (request: AuthRequest, response: Response) => {
   const { id } = request.params;
   const { name } = request.body;
 
+  if (!id) {
+    return response.status(409).json({
+      message: "El id del banco es requerido!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número",
+    });
+  }
+
+  if (!name) {
+    return response.status(409).json({
+      message: "El nombre del banco es requerido!",
+    });
+  }
+
   try {
     await sequelize.transaction(async (t: Transaction) => {
       const bank = await Bank.findByPk(id); // Find the bank by its id
@@ -77,6 +95,18 @@ export const updateBank = async (request: AuthRequest, response: Response) => {
 
 export const deleteBank = async (request: AuthRequest, response: Response) => {
   const { id } = request.params;
+
+  if (!id) {
+    return response.status(409).json({
+      message: "El id del banco es requerido!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número",
+    });
+  }
 
   try {
     await sequelize.transaction(async (t: Transaction) => {
@@ -116,6 +146,19 @@ export const getAllAccountsFromBank = async (
   response: Response
 ) => {
   const { id } = request.params;
+
+  if (!id) {
+    return response.status(409).json({
+      message: "El id del banco es requerido!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número!",
+    });
+  }
+
   try {
     const accounts = await Account.findAll({
       where: {

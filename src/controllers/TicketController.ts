@@ -167,11 +167,17 @@ export const getAllTickets = async (
       include: [
         { model: TicketReason, as: "reason" },
         {
-          model: TicketStatus,
-          as: "statuses",
-          through: {
+          model: TicketStatuses,
+          as: "ticketStatuses",
+          /*           through: {
             as: "ticketsStatuses",
-          },
+          }, */
+          include: [
+            {
+              model: TicketStatus,
+              as: "status",
+            },
+          ],
         },
         {
           model: Employee,
@@ -201,6 +207,9 @@ export const getAllTickets = async (
           ],
         },
       ],
+      order: [
+        [{ model: TicketStatuses, as: "ticketStatuses" }, "createdAt", "DESC"],
+      ],
     });
 
     if (tickets.length > 0) {
@@ -223,6 +232,18 @@ export const getAllTicketsForEmployee = async (
 ) => {
   try {
     const { id } = request.params;
+
+    if (!id) {
+      return response.status(409).json({
+        message: "El id del empleado es requerido!",
+      });
+    }
+
+    if (isNaN(parseInt(id))) {
+      return response.status(409).json({
+        message: "El id especificado debe ser un número!",
+      });
+    }
 
     const tickets = await TicketAssignees.findAll({
       where: { assigneeId: id },
@@ -360,6 +381,12 @@ export const updateTicketStatus = async (
     });
   }
 
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número!",
+    });
+  }
+
   try {
     await sequelize.transaction(async (t: Transaction) => {
       // Find existing everything
@@ -399,7 +426,15 @@ export const deleteTicket = async (
   const { id } = request.params;
 
   if (!id) {
-    response.status(409).json({ message: "El id del ticket es requerido" });
+    return response.status(409).json({
+      message: "El id del ticket es requerido",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número!",
+    });
   }
 
   try {

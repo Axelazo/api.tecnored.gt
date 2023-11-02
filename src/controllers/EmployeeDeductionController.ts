@@ -233,13 +233,25 @@ export const deleteEmployeeDeduction = async (
 ) => {
   const { id } = request.params;
 
+  if (!id) {
+    return response.status(409).json({
+      message: "La penalización del empleado es requerida!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número!",
+    });
+  }
+
   try {
     sequelize.transaction(async (t: Transaction) => {
       const employeeDeduction = await EmployeeDeduction.findByPk(id);
 
       if (!employeeDeduction) {
         response.status(404).json({
-          message: "No se ha encontrado la bonificación del empleado",
+          message: "No se ha encontrado la penalización del empleado",
         });
         return;
       }

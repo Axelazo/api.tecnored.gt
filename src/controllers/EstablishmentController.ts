@@ -63,20 +63,20 @@ export const createEstablishmentAreaRelationship = async (
 ) => {
   const { establishmentId, areaId } = request.body;
 
+  if (!establishmentId) {
+    return response.status(422).json({
+      message: "El establecimiento es requerido!",
+    });
+  }
+
+  if (!areaId) {
+    return response.status(422).json({
+      message: "El area es requerida!",
+    });
+  }
+
   try {
     sequelize.transaction(async (t: Transaction) => {
-      if (!establishmentId) {
-        return response.status(422).json({
-          message: "El establecimiento es requerido!",
-        });
-      }
-
-      if (!areaId) {
-        return response.status(422).json({
-          message: "El area es requerida!",
-        });
-      }
-
       const existingEstablishment = await Establishment.findByPk(
         establishmentId
       );
@@ -132,6 +132,18 @@ export const getAllAreasFromEstablishment = async (
 ) => {
   const { id } = request.params;
 
+  if (!id) {
+    return response.status(409).json({
+      message: "El establecimiento es requerido!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número!",
+    });
+  }
+
   try {
     const areas = await Area.findAll({
       include: [
@@ -164,6 +176,19 @@ export const deleteEstablishmentAreaRelationship = async (
 ) => {
   const { id } = request.params;
 
+  if (!id) {
+    return response.status(409).json({
+      message:
+        "El id de la relación entre establecimiento y área es requerida!",
+    });
+  }
+
+  if (isNaN(parseInt(id))) {
+    return response.status(409).json({
+      message: "El id especificado debe ser un número!",
+    });
+  }
+
   try {
     sequelize.transaction(async (t: Transaction) => {
       const existingEstablishmentArea = await EstablishmentArea.findByPk(id);
@@ -193,26 +218,26 @@ export const createEstablishmentAreaPositionRelationship = async (
 ) => {
   const { establishmentId, areaId, positionId } = request.body;
 
+  if (!establishmentId) {
+    return response.status(422).json({
+      message: "El establecimiento es requerido!",
+    });
+  }
+
+  if (!areaId) {
+    return response.status(422).json({
+      message: "El area es requerida!",
+    });
+  }
+
+  if (!positionId) {
+    return response.status(422).json({
+      message: "La posición es requerida!",
+    });
+  }
+
   try {
     sequelize.transaction(async (t: Transaction) => {
-      if (!establishmentId) {
-        return response.status(422).json({
-          message: "El establecimiento es requerido!",
-        });
-      }
-
-      if (!areaId) {
-        return response.status(422).json({
-          message: "El area es requerida!",
-        });
-      }
-
-      if (!positionId) {
-        return response.status(422).json({
-          message: "La posición es requerida!",
-        });
-      }
-
       const existingEstablishment = await Establishment.findByPk(
         establishmentId
       );
@@ -275,21 +300,19 @@ export const getAllPositionsFromEstablishmentArea = async (
 ) => {
   const { establishmentId, areaId } = request.params;
 
-  console.log(request.params);
+  if (!establishmentId) {
+    return response.status(422).json({
+      message: "El establecimiento es requerido!",
+    });
+  }
+
+  if (!areaId) {
+    return response.status(422).json({
+      message: "El area es requerida!",
+    });
+  }
 
   try {
-    if (!establishmentId) {
-      return response.status(422).json({
-        message: "El establecimiento es requerido!",
-      });
-    }
-
-    if (!areaId) {
-      return response.status(422).json({
-        message: "El area es requerida!",
-      });
-    }
-
     const existingEstablishment = await Establishment.findByPk(establishmentId);
 
     if (!existingEstablishment) {
