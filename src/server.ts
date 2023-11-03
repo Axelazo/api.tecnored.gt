@@ -44,6 +44,35 @@ const server = app.listen(port, () => {
   });
 });
 
+// Handle SIGINT and SIGTERM signals
+process.on("SIGINT", () => {
+  console.log(
+    "[server]: ⚡️ TecnoRedMS API - Received SIGINT. Shutting down gracefully..."
+  );
+
+  // Perform any cleanup or additional shutdown tasks here
+  // For example, you can close the database connection and release resources.
+
+  server.close(() => {
+    console.log("[server]: ⚡️ TecnoRedMS API - Server has been closed.");
+    process.exit(0); // Exit the process
+  });
+});
+
+process.on("SIGTERM", () => {
+  console.log(
+    "[server]: ⚡️ TecnoRedMS API - Received SIGTERM. Shutting down gracefully..."
+  );
+
+  // Perform any cleanup or additional shutdown tasks here
+  // For example, you can close the database connection and release resources.
+
+  server.close(() => {
+    console.log("[server]: ⚡️ TecnoRedMS API - Server has been closed.");
+    process.exit(0); // Exit the process
+  });
+});
+
 console.log(`[server]: ⚡️ TecnoRedMS API - Starting tasks...`);
 
 console.log(`[server]: ⚡️ TecnoRedMS API - Current date is: ${new Date()}`);
