@@ -40,6 +40,7 @@ import EmployeeAllowance from "../models/EmployeeAllowance";
 import EmployeeDeduction from "../models/EmployeeDeduction";
 import ProcessedPayroll from "../models/ProcessedPayroll";
 import { mergeProcessedPayrolls } from "../utils/misc";
+import TicketAssignees from "../models/TicketAssignees";
 
 const protectedDirectory = `/protected/images/`;
 
@@ -852,6 +853,18 @@ export const deleteEmployee = async (
       if (!existingEmployee) {
         return response.status(404).json({
           message: "El empleado indicado no existe!",
+        });
+      }
+
+      const assignedTickets = await TicketAssignees.findAll({
+        where: {
+          assigneeId: existingEmployee.id,
+        },
+      });
+
+      if (assignedTickets.length > 0) {
+        return response.status(404).json({
+          message: "El empleado tiene tickets pendientes!",
         });
       }
 
